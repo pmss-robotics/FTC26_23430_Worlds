@@ -6,10 +6,8 @@ import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.WaitCommand;
 
-import org.firstinspires.ftc.teamcode.subsystems.FlywheelSubsystem;
 import org.firstinspires.ftc.teamcode.subsystems.IntakeSubsystemNew;
 import org.firstinspires.ftc.teamcode.subsystems.KickerSubsystem;
-import org.firstinspires.ftc.teamcode.subsystems.OuttakeSubsystem;
 
 @Config
 public class MacroCommands {
