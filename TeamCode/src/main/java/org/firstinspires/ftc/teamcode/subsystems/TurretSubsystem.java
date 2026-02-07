@@ -1,14 +1,11 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
-import static com.seattlesolvers.solverslib.util.MathUtils.clamp;
-
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import com.seattlesolvers.solverslib.command.Subsystem;
-import com.seattlesolvers.solverslib.controller.PIDFController;
 
 @Config
 public class TurretSubsystem implements Subsystem {
@@ -18,15 +15,13 @@ public class TurretSubsystem implements Subsystem {
     public static double TICKS_PER_REV = 526.54;
 
     // PID coefficients
-    public PIDFController pidf;
-    public static double kP = 0.022;   // UPDATED
+    public static double kP = 0.0425;   // UPDATED
     public static double kI = 0.0;
-    public static double kD = 0.005;
-    public static double kF = 0.0;
+    public static double kD = 0.0002;
 
     // Safe rotation limits
-    public static double MIN_ANGLE = -135;   // right
-    public static double MAX_ANGLE = 135;    // left
+    public static double MIN_ANGLE = -130;   // right
+    public static double MAX_ANGLE = 130;    // left
 
     // Hold-zero mode
     public boolean holdZero = false;
@@ -46,8 +41,6 @@ public class TurretSubsystem implements Subsystem {
 
         // Positive = LEFT, Negative = RIGHT
         turretMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-
-        pidf = new PIDFController(kP, kI, kD, kF, 0, 0);
     }
 
     public double getTurretAngle() {
@@ -91,7 +84,7 @@ public class TurretSubsystem implements Subsystem {
         }
 
         // Clamp target
-        targetAngle = clamp(targetAngle, MIN_ANGLE, MAX_ANGLE);
+        targetAngle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, targetAngle));
 
         double current = getTurretAngle();
         double error = normalizeAngle(targetAngle - current);
@@ -107,11 +100,14 @@ public class TurretSubsystem implements Subsystem {
         }
 
         // PID
-        pidf.setPIDF(kP, kI, kD, kF);
-        double output = pidf.calculate(current);
+        integral += error;
+        double derivative = error - lastError;
+        lastError = error;
+
+        double output = (kP * error) + (kI * integral) + (kD * derivative);
 
         // Clamp power
-        output = clamp(output, -1, 1);
+        output = Math.max(-0.8, Math.min(0.8, output));
 
         turretMotor.setPower(output);
     }
