@@ -33,6 +33,7 @@ public class RedSolo extends CommandOpMode {
     public static double fast = 1;
     public static double slow = 1;
 
+    public static double offset = 0;
     public static double targetX = 71;
     public static double targetY = 71;
     private static double shootvel = 0;
@@ -52,7 +53,7 @@ public class RedSolo extends CommandOpMode {
     @Override
     public void initialize() {
 
-        StateTransfer.posePedro = new Pose(44.3221, 57.7222, Math.toRadians(-140.5609));
+        StateTransfer.posePedro = new Pose(43.956, 58.013, Math.toRadians(-142.35));
 
         FlywheelSubsystem outtake = new FlywheelSubsystem(hardwareMap, telemetry);
         IntakeSubsystemNew intake = new IntakeSubsystemNew(hardwareMap, telemetry);
@@ -141,6 +142,14 @@ public class RedSolo extends CommandOpMode {
                 new InstantCommand(() -> aimornot = true),
                 new InstantCommand(() -> aimornot = false)
         );
+
+        new GamepadButton(driver, GamepadKeys.Button.DPAD_LEFT).whenPressed(
+                new InstantCommand(() -> offset = offset + 4)
+        );
+        new GamepadButton(driver, GamepadKeys.Button.DPAD_RIGHT).whenPressed(
+                new InstantCommand(() -> offset = offset - 4)
+        );
+
         new GamepadButton(driver, GamepadKeys.Button.A)
                 .whenPressed(new RunCommand(()->{
                     Pose currentPose = drive.getPose();
@@ -150,15 +159,7 @@ public class RedSolo extends CommandOpMode {
                             0.0   // zero heading surely bwahah
                     ));
                 }));
-        new GamepadButton(driver, GamepadKeys.Button.DPAD_LEFT)
-                .whenPressed(new InstantCommand(() ->
-                        turret.goToAngle(turret.getTurretAngle() - 0.5)
-                ));
 
-        new GamepadButton(driver, GamepadKeys.Button.DPAD_RIGHT)
-                .whenPressed(new InstantCommand(() ->
-                        turret.goToAngle(turret.getTurretAngle() + 0.5)
-                ));
 
 
         // LIMELIGHT UPDATE
@@ -196,9 +197,10 @@ public class RedSolo extends CommandOpMode {
             double aimAngle = turret.calculateAimAngle(
                     robotX, robotY, robotHeadingDeg,
                     targetX, targetY
+
             );
 
-            turret.goToAngle(aimAngle);
+            turret.goToAngle(aimAngle + offset);
 
             double turretAngle = turret.getTurretAngle();
             double error = Math.abs(aimAngle - turretAngle);
@@ -234,7 +236,7 @@ public class RedSolo extends CommandOpMode {
 //    }
 
     public static double computeY(double x) {
-        return (-0.0000099416 * Math.pow(x, 4)) + (0.00464449 * Math.pow(x, 3)) - (0.79584 * Math.pow(x, 2)) + (73.70122*x) - 132.82571;
+        return (0.0000175768 * Math.pow(x, 4)) - (0.00579237 * Math.pow(x, 3)) + (0.703251 * Math.pow(x, 2)) - (21.63918*x) + 1997.14785;
     }
 
     // ⭐ HOOD QUADRATIC FORMULA
@@ -244,6 +246,6 @@ public class RedSolo extends CommandOpMode {
 //                + 0.43875;
 //    }
     public static double computeHoodPosition(double x) {
-        return 1.04895 * Math.pow(10, -8) * Math.pow(x, 4) - 0.00000362859 * Math.pow(x, 3) + 0.000446154 * Math.pow(x, 2) - 0.0232164*x + 0.77352;
+        return (-(1.67969 * Math.pow(10, -9)) * Math.pow(x, 4)) + ((5.93206 * Math.pow(10, -7)) * Math.pow(x, 3)) - 0.0000619875 * Math.pow(x, 2) + 0.00105249*x + 0.38746;
     }
 }
