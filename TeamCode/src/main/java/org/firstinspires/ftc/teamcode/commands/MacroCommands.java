@@ -35,6 +35,7 @@ public class MacroCommands {
 
                 new WaitCommand(spinUp),
 
+
                 new InstantCommand(kicker::moveToTarget),
 
                 new WaitCommand(kickDelay),
