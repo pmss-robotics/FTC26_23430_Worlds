@@ -274,7 +274,7 @@ public class Red12 extends OpMode {
                 }
                 break;
             default:
-                // Do nothing or end autonomous
+                //Do nothing or end autonomous
                 break;
         }
     }

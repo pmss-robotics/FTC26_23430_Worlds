@@ -14,7 +14,7 @@ public class TurretSubsystem implements Subsystem {
 
     public static double TICKS_PER_REV = 526.54;
 
-    // PID coefficients
+    //PID coefficients
     public static double kP = 0.0425;   // UPDATED
     public static double kI = 0.0;
     public static double kD = 0.0002;
