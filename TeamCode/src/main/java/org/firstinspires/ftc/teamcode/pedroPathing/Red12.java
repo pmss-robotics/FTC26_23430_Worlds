@@ -22,8 +22,8 @@ public class Red12 extends OpMode {
     FlywheelSubsystem outtake;
     TurretSubsystem turret;
     private static boolean aimornot = false;
-    public static double targetX = 71;
-    public static double targetY = 71;
+    public static double targetX = 143;
+    public static double targetY = 143;
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
 
