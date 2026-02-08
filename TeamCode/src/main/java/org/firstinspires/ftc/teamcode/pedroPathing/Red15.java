@@ -29,19 +29,10 @@ public class Red15 extends OpMode {
 
     private int pathState;
 
-    private final Pose pose1 = new Pose(115.956, 130.013, Math.toRadians(34));
-    private final Pose pose2 = new Pose(84, 67, Math.toRadians(0));
-    private final Pose pose3 = new Pose(126, 84, Math.toRadians(0));
-    private final Pose pose4 = new Pose(85, 70, Math.toRadians(0));
-    private final Pose pose5 = new Pose(100, 60, Math.toRadians(0));
-    private final Pose pose6 = new Pose(124, 60, Math.toRadians(0));
-    private final Pose pose7 = new Pose(85, 70, Math.toRadians(0));
-    private final Pose pose8 = new Pose(85, 70, Math.toRadians(0));
-    private final Pose pose9 = new Pose(132, 36, Math.toRadians(0));
-    private final Pose pose10 = new Pose(85, 70, Math.toRadians(0));
 
-    private Path scorePreload;
-    private PathChain grabPickup1, scorePickup1, grabPickup2Start, grabPickup2End, scorePickup2, grabPickup3Start, grabPickup3End, scorePickup3;
+
+    private Path Path1;
+    private PathChain Path2, Path3, Path4, Path5, Path6, Path7, Path8, Path9;
 
     @Override
     public void init() {
@@ -58,7 +49,7 @@ public class Red15 extends OpMode {
 
         follower = Constants.createFollower(hardwareMap);
         buildPaths();
-        follower.setStartingPose(pose1);
+        follower.setStartingPose(new Pose(43.956, 58.013, Math.toRadians(-142.35)));
     }
 
     @Override
@@ -121,26 +112,13 @@ public class Red15 extends OpMode {
         // No special stop actions needed
     }
     public void  buildPaths() {
+                Path1 = new Path(new BezierCurve(
+                        new Pose(115.956, 130.013),
+                        new Pose(89.000, 97.000),
+                        new Pose(84.000, 67.000)
+                ));
+                Path1.setLinearHeadingInterpolation(Math.toRadians(34), Math.toRadians(0));
 
-            PathChain Path1;
-            PathChain Path2;
-            PathChain Path3;
-            PathChain Path4;
-            PathChain Path5;
-            PathChain Path6;
-            PathChain Path7;
-            PathChain Path8;
-            PathChain Path9;
-
-                Path1 = follower.pathBuilder().addPath(
-                                new BezierCurve(
-                                        new Pose(115.956, 130.013),
-                                        new Pose(89.000, 97.000),
-                                        new Pose(84.000, 67.000)
-                                )
-                        ).setLinearHeadingInterpolation(Math.toRadians(34), Math.toRadians(0))
-
-                        .build();
 
                 Path2 = follower.pathBuilder().addPath(
                                 new BezierCurve(
@@ -227,15 +205,16 @@ public class Red15 extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
+                new InstantCommand(() -> intake.setPower(0)).schedule();
                 new InstantCommand(() -> kicker.moveToTarget()).schedule();
                 new InstantCommand(() -> aimornot = true).schedule();
-                follower.followPath(scorePreload);
+                follower.followPath(Path1);
                 setPathState(1);
                 break;
             case 1:
                 if (!follower.isBusy()) {
                     new InstantCommand(() -> kicker.moveToHome()).schedule();
-                    new InstantCommand(() -> intake.setPower(0)).schedule();
+                    new InstantCommand(() -> intake.setPower(1)).schedule();
                     setPathState(2);
                 }
                 break;
@@ -243,14 +222,15 @@ public class Red15 extends OpMode {
                 if (pathTimer.getElapsedTimeSeconds() > 1) {
                     new InstantCommand(() -> kicker.moveToTarget()).schedule();
                     new InstantCommand(() -> aimornot = false).schedule();
-                    follower.followPath(grabPickup1, true);
+                    follower.followPath(Path2, true);
                     setPathState(3);
                 }
                 break;
             case 3:
                 if (!follower.isBusy()) {
+                    new InstantCommand(() -> intake.setPower(0)).schedule();
                     new InstantCommand(() -> aimornot = true).schedule();
-                    follower.followPath(scorePickup1);
+                    follower.followPath(Path3);
                     setPathState(4);
                 }
                 break;
@@ -265,69 +245,77 @@ public class Red15 extends OpMode {
                 if (pathTimer.getElapsedTimeSeconds() > 1) {
                     new InstantCommand(() -> kicker.moveToTarget()).schedule();
                     new InstantCommand(() -> aimornot = false).schedule();
-                    new InstantCommand(() -> intake.setPower(0)).schedule();
-                    follower.followPath(grabPickup2Start);
+                    follower.followPath(Path4);
                     setPathState(6);
                 }
                 break;
             case 6:
                 if (!follower.isBusy()) {
-                    new InstantCommand(() -> intake.setPower(1)).schedule();
-                    follower.followPath(grabPickup2End, true);
+                    new InstantCommand(() -> intake.setPower(0)).schedule();
+                    new InstantCommand(() -> aimornot = true).schedule();
+                    follower.followPath(Path5);
                     setPathState(7);
                 }
                 break;
             case 7:
                 if (!follower.isBusy()) {
-                    new InstantCommand(() -> aimornot = true).schedule();
-                    new InstantCommand(() -> intake.setPower(0)).schedule();
-                    follower.followPath(scorePickup2);
+                    new InstantCommand(() -> kicker.moveToHome()).schedule();
+                    new InstantCommand(() -> intake.setPower(1)).schedule();
                     setPathState(8);
                 }
                 break;
             case 8:
-                if (!follower.isBusy()) {
-                    new InstantCommand(() -> kicker.moveToHome()).schedule();
-                    new InstantCommand(() -> intake.setPower(1)).schedule();
+                if (pathTimer.getElapsedTimeSeconds() > 1) {
+                    new InstantCommand(() -> kicker.moveToTarget()).schedule();
+                    new InstantCommand(() -> aimornot = false).schedule();
+                    follower.followPath(Path6);
                     setPathState(9);
                 }
                 break;
             case 9:
-                if (pathTimer.getElapsedTimeSeconds() > 1) {
-                    new InstantCommand(() -> kicker.moveToTarget()).schedule();
-                    new InstantCommand(() -> aimornot = false).schedule();
+                if (!follower.isBusy()) {
+                    new InstantCommand(() -> aimornot = true).schedule();
                     new InstantCommand(() -> intake.setPower(0)).schedule();
-                    follower.followPath(grabPickup3Start);
+                    follower.followPath(Path7);
                     setPathState(10);
                 }
                 break;
             case 10:
                 if (!follower.isBusy()) {
+                    new InstantCommand(() -> kicker.moveToHome()).schedule();
                     new InstantCommand(() -> intake.setPower(1)).schedule();
-                    follower.followPath(grabPickup3End, true);
                     setPathState(11);
                 }
                 break;
             case 11:
-                if (!follower.isBusy()) {
-                    new InstantCommand(() -> aimornot = true).schedule();
-                    new InstantCommand(() -> intake.setPower(0)).schedule();
-                    follower.followPath(scorePickup3);
+                if (pathTimer.getElapsedTimeSeconds() > 1) {
+                    new InstantCommand(() -> kicker.moveToTarget()).schedule();
+                    new InstantCommand(() -> aimornot = false).schedule();
+                    follower.followPath(Path8);
                     setPathState(12);
                 }
                 break;
             case 12:
                 if (!follower.isBusy()) {
-                    new InstantCommand(() -> kicker.moveToHome()).schedule();
-                    new InstantCommand(() -> intake.setPower(1)).schedule();
+                    new InstantCommand(() -> aimornot = true).schedule();
+                    new InstantCommand(() -> intake.setPower(0)).schedule();
+                    follower.followPath(Path7);
                     setPathState(13);
                 }
                 break;
             case 13:
+                if (!follower.isBusy()) {
+                    new InstantCommand(() -> kicker.moveToHome()).schedule();
+                    new InstantCommand(() -> intake.setPower(1)).schedule();
+                    setPathState(14);
+                }
+                break;
+            case 14:
                 if (pathTimer.getElapsedTimeSeconds() > 1) {
                     new InstantCommand(() -> kicker.moveToTarget()).schedule();
                     new InstantCommand(() -> aimornot = false).schedule();
                     new InstantCommand(() -> intake.setPower(0)).schedule();
+                    follower.followPath(Path8);
                     setPathState(-1);
                 }
                 break;
