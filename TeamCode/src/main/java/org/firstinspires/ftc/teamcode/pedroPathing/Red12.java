@@ -10,6 +10,7 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import org.firstinspires.ftc.teamcode.subsystems.*;
 
@@ -85,7 +86,7 @@ public class Red12 extends OpMode {
         double distance = turret.getDistance();
         double hoodPos = computeHoodPosition(distance);
 
-        hoodPos = Math.max(0.0, Math.min(1.0, hoodPos));
+        hoodPos = Range.clip(hoodPos, 0.0, 1.0);
         hood.setHoodPosition(hoodPos);
 
         if (aimornot) {
