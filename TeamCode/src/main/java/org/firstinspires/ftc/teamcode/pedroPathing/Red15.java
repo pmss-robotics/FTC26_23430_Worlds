@@ -21,9 +21,9 @@ public class Red15 extends OpMode {
     HoodSubsystem hood;
     FlywheelSubsystem outtake;
     TurretSubsystem turret;
-    private static boolean aimornot = false;
-    public static double targetX = 71;
-    public static double targetY = 71;
+    private  boolean aimornot = false;
+    public static double targetX = 143;
+    public static double targetY = 143;
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
 
@@ -49,7 +49,7 @@ public class Red15 extends OpMode {
 
         follower = Constants.createFollower(hardwareMap);
         buildPaths();
-        follower.setStartingPose(new Pose(43.956, 58.013, Math.toRadians(-142.35)));
+        follower.setStartingPose(new Pose(115.956, 130.013, Math.toRadians(34)));
     }
 
     @Override
@@ -205,116 +205,116 @@ public class Red15 extends OpMode {
     public void autonomousPathUpdate() {
         switch (pathState) {
             case 0:
-                new InstantCommand(() -> intake.setPower(0)).schedule();
-                new InstantCommand(() -> kicker.moveToTarget()).schedule();
-                new InstantCommand(() -> aimornot = true).schedule();
+                intake.setPower(0);
+                kicker.moveToTarget();
+                aimornot = true;
                 follower.followPath(Path1);
                 setPathState(1);
                 break;
             case 1:
                 if (!follower.isBusy()) {
-                    new InstantCommand(() -> kicker.moveToHome()).schedule();
-                    new InstantCommand(() -> intake.setPower(1)).schedule();
+                    kicker.moveToHome();
+                    intake.setPower(1);
                     setPathState(2);
                 }
                 break;
             case 2:
                 if (pathTimer.getElapsedTimeSeconds() > 1) {
-                    new InstantCommand(() -> kicker.moveToTarget()).schedule();
-                    new InstantCommand(() -> aimornot = false).schedule();
+                    kicker.moveToTarget();
+                    aimornot = false;
                     follower.followPath(Path2, true);
                     setPathState(3);
                 }
                 break;
             case 3:
                 if (!follower.isBusy()) {
-                    new InstantCommand(() -> intake.setPower(0)).schedule();
-                    new InstantCommand(() -> aimornot = true).schedule();
+                    intake.setPower(0);
+                    aimornot = true;
                     follower.followPath(Path3);
                     setPathState(4);
                 }
                 break;
             case 4:
                 if (!follower.isBusy()) {
-                    new InstantCommand(() -> kicker.moveToHome()).schedule();
-                    new InstantCommand(() -> intake.setPower(1)).schedule();
+                    kicker.moveToHome();
+                    intake.setPower(1);
                     setPathState(5);
                 }
                 break;
             case 5:
                 if (pathTimer.getElapsedTimeSeconds() > 1) {
-                    new InstantCommand(() -> kicker.moveToTarget()).schedule();
-                    new InstantCommand(() -> aimornot = false).schedule();
+                    kicker.moveToTarget();
+                    aimornot = false;
                     follower.followPath(Path4);
                     setPathState(6);
                 }
                 break;
             case 6:
                 if (!follower.isBusy()) {
-                    new InstantCommand(() -> intake.setPower(0)).schedule();
-                    new InstantCommand(() -> aimornot = true).schedule();
+                    intake.setPower(0);
+                    aimornot = true;
                     follower.followPath(Path5);
                     setPathState(7);
                 }
                 break;
             case 7:
                 if (!follower.isBusy()) {
-                    new InstantCommand(() -> kicker.moveToHome()).schedule();
-                    new InstantCommand(() -> intake.setPower(1)).schedule();
+                    kicker.moveToHome();
+                    intake.setPower(1);
                     setPathState(8);
                 }
                 break;
             case 8:
                 if (pathTimer.getElapsedTimeSeconds() > 1) {
-                    new InstantCommand(() -> kicker.moveToTarget()).schedule();
-                    new InstantCommand(() -> aimornot = false).schedule();
+                    kicker.moveToTarget();
+                    aimornot = false;
                     follower.followPath(Path6);
                     setPathState(9);
                 }
                 break;
             case 9:
                 if (!follower.isBusy()) {
-                    new InstantCommand(() -> aimornot = true).schedule();
-                    new InstantCommand(() -> intake.setPower(0)).schedule();
+                    aimornot = true;
+                    intake.setPower(0);
                     follower.followPath(Path7);
                     setPathState(10);
                 }
                 break;
             case 10:
                 if (!follower.isBusy()) {
-                    new InstantCommand(() -> kicker.moveToHome()).schedule();
-                    new InstantCommand(() -> intake.setPower(1)).schedule();
+                    kicker.moveToHome();
+                    intake.setPower(1);
                     setPathState(11);
                 }
                 break;
             case 11:
                 if (pathTimer.getElapsedTimeSeconds() > 1) {
-                    new InstantCommand(() -> kicker.moveToTarget()).schedule();
-                    new InstantCommand(() -> aimornot = false).schedule();
+                    kicker.moveToTarget();
+                    aimornot = false;
                     follower.followPath(Path8);
                     setPathState(12);
                 }
                 break;
             case 12:
                 if (!follower.isBusy()) {
-                    new InstantCommand(() -> aimornot = true).schedule();
-                    new InstantCommand(() -> intake.setPower(0)).schedule();
-                    follower.followPath(Path7);
+                    aimornot = true;
+                    intake.setPower(0);
+                    follower.followPath(Path9);
                     setPathState(13);
                 }
                 break;
             case 13:
                 if (!follower.isBusy()) {
-                    new InstantCommand(() -> kicker.moveToHome()).schedule();
-                    new InstantCommand(() -> intake.setPower(1)).schedule();
+                    kicker.moveToHome();
+                    intake.setPower(1);
                     setPathState(14);
                 }
                 break;
             case 14:
                 if (pathTimer.getElapsedTimeSeconds() > 1) {
-                    new InstantCommand(() -> kicker.moveToTarget()).schedule();
-                    new InstantCommand(() -> aimornot = false).schedule();
-                    new InstantCommand(() -> intake.setPower(0)).schedule();
+                    kicker.moveToTarget();
+                    aimornot = false;
+                    intake.setPower(0);
                     follower.followPath(Path8);
                     setPathState(-1);
                 }

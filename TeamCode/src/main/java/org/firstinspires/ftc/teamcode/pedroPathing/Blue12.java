@@ -177,7 +177,7 @@ public class Blue12 extends OpMode {
             case 1:
                 if (!follower.isBusy()) {
                     new InstantCommand(() -> kicker.moveToHome()).schedule();
-                    new InstantCommand(() -> intake.setPower(0)).schedule();
+                    new InstantCommand(() -> intake.setPower(1)).schedule();
                     setPathState(2);
                 }
                 break;
