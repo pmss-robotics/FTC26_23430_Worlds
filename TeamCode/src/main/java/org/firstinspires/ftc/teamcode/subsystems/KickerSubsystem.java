@@ -26,8 +26,8 @@ public class KickerSubsystem implements Subsystem {
         servoR = hardwareMap.get(ServoImplEx.class, "servoR");
 
         // Initialize to home
-        servoL.setPosition(HOME_POSITION_LEFT);
-        servoR.setPosition(HOME_POSITION_RIGHT);
+        servoL.setPosition(TARGET_POSITION_LEFT);
+        servoR.setPosition(TARGET_POSITION_RIGHT);
     }
 
     public void moveToTarget() {

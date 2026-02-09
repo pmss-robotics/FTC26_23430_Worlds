@@ -105,6 +105,15 @@ public class Red15 extends OpMode {
         } else {
             indicator.setPosition(0.277);
         }
+
+        telemetry.addData("Turret Angle", turretAngle);
+        telemetry.addData("Aim Angle", aimAngle);
+        telemetry.addData("Error", error);
+        telemetry.addData("Flywheel RPM", outtake.getTargetRPM());
+        telemetry.addData("Actual Outtake RPM", outtake.getActualRpm());
+        telemetry.addData("Actual Outtake 2 RPM", outtake.getActualRpm2());
+        telemetry.addData("Distance to goal", turret.getDistance());
+        telemetry.update();
     }
 
     @Override
@@ -315,7 +324,6 @@ public class Red15 extends OpMode {
                     kicker.moveToTarget();
                     aimornot = false;
                     intake.setPower(0);
-                    follower.followPath(Path8);
                     setPathState(-1);
                 }
                 break;
