@@ -12,5 +12,5 @@ public class StateTransfer {
     public static States.Obelisk motif = States.Obelisk.unread;
 
     public static States.Alliance alliance;
-    public static Pose posePedro = new Pose(0,0,0);
+    public static Pose posePedro = null;
 }

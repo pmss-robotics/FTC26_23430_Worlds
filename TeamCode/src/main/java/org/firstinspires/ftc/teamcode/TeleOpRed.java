@@ -25,6 +25,8 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.*;
 import org.firstinspires.ftc.teamcode.util.StateTransfer;
 
+import java.util.Objects;
+
 @Config
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "TeleOpRed", group = "TeleOp")
 public class TeleOpRed extends CommandOpMode {
@@ -53,7 +55,9 @@ public class TeleOpRed extends CommandOpMode {
     @Override
     public void initialize() {
 
-        StateTransfer.posePedro = new Pose(43.956, 58.013, Math.toRadians(-142.35));
+        if (Objects.isNull(StateTransfer.posePedro)) {
+            StateTransfer.posePedro = new Pose(43.956, 58.013, Math.toRadians(-142.35));
+        }
 
         FlywheelSubsystem outtake = new FlywheelSubsystem(hardwareMap, telemetry);
         IntakeSubsystemNew intake = new IntakeSubsystemNew(hardwareMap, telemetry);
@@ -150,15 +154,25 @@ public class TeleOpRed extends CommandOpMode {
                 new InstantCommand(() -> offset = offset - 4)
         );
 
-        new GamepadButton(driver, GamepadKeys.Button.A)
-                .whenPressed(new RunCommand(()->{
-                    Pose currentPose = drive.getPose();
-                    drive.setPose(new Pose(
-                            currentPose.getX(),
-                            currentPose.getY(),
-                            0.0   // zero heading surely bwahah
-                    ));
-                }));
+        // LOCALIZATION
+
+        // X -> robot against left wall
+        new GamepadButton(driver, GamepadKeys.Button.X).whenPressed(
+                new InstantCommand(() -> drive.setPose(new Pose(0,0,0))) //TODO: Change this pose its a default one
+        );
+        // A -> robot against back wall
+        new GamepadButton(driver, GamepadKeys.Button.A).whenPressed(
+                new InstantCommand(() -> drive.setPose(new Pose(0,0,0))) //TODO: Change this pose its a default one
+        );
+        // B -> robot against right
+        new GamepadButton(driver, GamepadKeys.Button.B).whenPressed(
+                new InstantCommand(() -> drive.setPose(new Pose(0,0,0))) //TODO: Change this pose its a default one
+        );
+        // Y -> robot against front wall
+        new GamepadButton(driver, GamepadKeys.Button.Y).whenPressed(
+                new InstantCommand(() -> drive.setPose(new Pose(0,0,0))) //TODO: Change this pose its a default one
+        );
+
 
 
 

@@ -13,6 +13,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import org.firstinspires.ftc.teamcode.subsystems.*;
+import org.firstinspires.ftc.teamcode.util.StateTransfer;
 
 @Autonomous(name = "RED |12|", group = "Autonomous")
 public class Red12 extends OpMode {
@@ -129,7 +130,8 @@ public class Red12 extends OpMode {
 
     @Override
     public void stop() {
-        // No special stop actions needed
+        // Save the pose at the end of Auto
+        StateTransfer.posePedro = follower.getPose();
     }
 
     public void buildPaths() {

@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import org.firstinspires.ftc.teamcode.subsystems.*;
+import org.firstinspires.ftc.teamcode.util.StateTransfer;
 
 @Autonomous(name = "RED |15|", group = "Autonomous")
 public class Blue15 extends OpMode {
@@ -118,7 +119,8 @@ public class Blue15 extends OpMode {
 
     @Override
     public void stop() {
-        // No special stop actions needed
+        // Save the pose at the end of Auto
+        StateTransfer.posePedro = follower.getPose();
     }
     public void  buildPaths() {
         Path1 = new Path(new BezierLine(

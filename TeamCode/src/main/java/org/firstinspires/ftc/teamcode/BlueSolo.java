@@ -25,6 +25,8 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.*;
 import org.firstinspires.ftc.teamcode.util.StateTransfer;
 
+import java.util.Objects;
+
 @Config
 @com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "BlueSolo", group = "TeleOp")
 public class BlueSolo extends CommandOpMode {
@@ -53,7 +55,9 @@ public class BlueSolo extends CommandOpMode {
     @Override
     public void initialize() {
 
-        StateTransfer.posePedro = new Pose(43.956, 58.013, Math.toRadians(-142.35));
+        if (Objects.isNull(StateTransfer.posePedro)) {
+            StateTransfer.posePedro = new Pose(43.956, 58.013, Math.toRadians(-142.35));
+        }
 
         FlywheelSubsystem outtake = new FlywheelSubsystem(hardwareMap, telemetry);
         IntakeSubsystemNew intake = new IntakeSubsystemNew(hardwareMap, telemetry);
