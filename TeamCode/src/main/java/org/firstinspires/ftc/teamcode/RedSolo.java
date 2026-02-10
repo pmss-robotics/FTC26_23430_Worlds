@@ -149,16 +149,10 @@ public class RedSolo extends CommandOpMode {
         new GamepadButton(driver, GamepadKeys.Button.DPAD_RIGHT).whenPressed(
                 new InstantCommand(() -> offset = offset - 4)
         );
+        new GamepadButton(driver, GamepadKeys.Button.DPAD_DOWN).whenPressed(
+                new InstantCommand(() -> offset = 0)
+        );
 
-        new GamepadButton(driver, GamepadKeys.Button.A)
-                .whenPressed(new RunCommand(()->{
-                    Pose currentPose = drive.getPose();
-                    drive.setPose(new Pose(
-                            currentPose.getX(),
-                            currentPose.getY(),
-                            0.0   // zero heading surely bwahah
-                    ));
-                }));
 
 
 
