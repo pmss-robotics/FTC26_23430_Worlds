@@ -154,15 +154,25 @@ public class TeleOpBlue extends CommandOpMode {
                 new InstantCommand(() -> offset = offset - 4)
         );
 
-        new GamepadButton(driver, GamepadKeys.Button.A)
-                .whenPressed(new RunCommand(()->{
-                    Pose currentPose = drive.getPose();
-                    drive.setPose(new Pose(
-                            currentPose.getX(),
-                            currentPose.getY(),
-                            0.0   // zero heading surely bwahah
-                    ));
-                }));
+
+        // LOCALIZATION
+
+        // X -> robot against left wall
+        new GamepadButton(driver, GamepadKeys.Button.X).whenPressed(
+                new InstantCommand(() -> drive.setPose(new Pose(0,0,0))) //TODO: Change this pose its a default one
+        );
+        // A -> robot against back wall
+        new GamepadButton(driver, GamepadKeys.Button.A).whenPressed(
+                new InstantCommand(() -> drive.setPose(new Pose(0,0,0))) //TODO: Change this pose its a default one
+        );
+        // B -> robot against right
+        new GamepadButton(driver, GamepadKeys.Button.B).whenPressed(
+                new InstantCommand(() -> drive.setPose(new Pose(0,0,0))) //TODO: Change this pose its a default one
+        );
+        // Y -> robot against front wall
+        new GamepadButton(driver, GamepadKeys.Button.Y).whenPressed(
+                new InstantCommand(() -> drive.setPose(new Pose(0,0,0))) //TODO: Change this pose its a default one
+        );
 
 
 
@@ -240,7 +250,7 @@ public class TeleOpBlue extends CommandOpMode {
 //    }
 
     public static double computeY(double x) {
-        return (0.0000175768 * Math.pow(x, 4)) - (0.00579237 * Math.pow(x, 3)) + (0.703251 * Math.pow(x, 2)) - (21.63918*x) + 1997.14785;
+        return (0.0000175768 * Math.pow(x, 4)) - (0.00579237 * Math.pow(x, 3)) + (0.703251 * Math.pow(x, 2)) - (21.63918*x) + 1947.14785;
     }
 
     // ⭐ HOOD QUADRATIC FORMULA
