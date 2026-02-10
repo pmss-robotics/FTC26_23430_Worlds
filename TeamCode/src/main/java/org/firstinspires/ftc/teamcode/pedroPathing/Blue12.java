@@ -29,7 +29,7 @@ public class Blue12 extends OpMode {
 
     private int pathState;
 
-    private final Pose pose1 = new Pose(115.956, 130.013, Math.toRadians(-142));
+    private final Pose pose1 = new Pose(112.956, 130.013, Math.toRadians(-142));
     private final Pose pose2 = new Pose(97, 84, Math.toRadians(0));
     private final Pose pose3 = new Pose(126, 84, Math.toRadians(0));
     private final Pose pose4 = new Pose(85, 70, Math.toRadians(0));

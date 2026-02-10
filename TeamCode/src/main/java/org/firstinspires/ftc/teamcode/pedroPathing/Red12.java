@@ -77,11 +77,8 @@ public class Red12 extends OpMode {
         follower.update();
         autonomousPathUpdate();
 
-        telemetry.addData("path state", pathState);
-        telemetry.addData("x", follower.getPose().getX());
-        telemetry.addData("y", follower.getPose().getY());
-        telemetry.addData("heading", follower.getPose().getHeading());
-        telemetry.update();
+
+
 
         double distance = turret.getDistance();
         double hoodPos = computeHoodPosition(distance);
@@ -115,6 +112,11 @@ public class Red12 extends OpMode {
         } else {
             indicator.setPosition(0.277);
         }
+
+        telemetry.addData("path state", pathState);
+        telemetry.addData("x", follower.getPose().getX());
+        telemetry.addData("y", follower.getPose().getY());
+        telemetry.addData("heading", follower.getPose().getHeading());
         telemetry.addData("Turret Angle", turretAngle);
         telemetry.addData("Aim Angle", aimAngle);
         telemetry.addData("Error", error);
