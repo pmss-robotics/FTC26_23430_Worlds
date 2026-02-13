@@ -6,6 +6,7 @@ import com.acmerobotics.dashboard.config.Config;
 import com.seattlesolvers.solverslib.command.SubsystemBase;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 
@@ -37,4 +38,9 @@ public class PedroDriveSubsystem extends SubsystemBase {
 
     public void setPose(Pose reset) {
     }
+
+    public Vector getVelocity() {
+        return follower.getVelocity();
+    }
+
 }
