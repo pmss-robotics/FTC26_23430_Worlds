@@ -13,4 +13,6 @@ public class StateTransfer {
 
     public static States.Alliance alliance;
     public static Pose posePedro = null;
+
+    public static double turretInitial = 0;
 }

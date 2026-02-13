@@ -36,8 +36,8 @@ public class BlueSolo extends CommandOpMode {
     public static double slow = 1;
 
     public static double offset = 0;
-    public static double targetX = 71;
-    public static double targetY = 71;
+    public static double targetX = 143;
+    public static double targetY = -143;
     private static double shootvel = 0;
     private static boolean aimornot = false;
 
@@ -153,19 +153,15 @@ public class BlueSolo extends CommandOpMode {
         new GamepadButton(driver, GamepadKeys.Button.DPAD_RIGHT).whenPressed(
                 new InstantCommand(() -> offset = offset - 4)
         );
-
-        new GamepadButton(driver, GamepadKeys.Button.A)
-                .whenPressed(new RunCommand(()->{
-                    Pose currentPose = drive.getPose();
-                    drive.setPose(new Pose(
-                            currentPose.getX(),
-                            currentPose.getY(),
-                            0.0   // zero heading surely bwahah
-                    ));
-                }));
+        new GamepadButton(driver, GamepadKeys.Button.DPAD_DOWN).whenPressed(
+                new InstantCommand(() -> offset = 0)
+        );
+        new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
+                new InstantCommand(() -> drive.setPose(new Pose(-63,-63,0))) //TODO: Change this pose its a default one
+        );
 
 
-
+/*
         // LIMELIGHT UPDATE
         schedule(new RunCommand(() -> {
             LLResult result = limelight.getLatestResult();
@@ -178,6 +174,7 @@ public class BlueSolo extends CommandOpMode {
                 hasTarget = false;
             }
         }));
+ */
 
         // MAIN LOOP
         schedule(new RunCommand(() -> {
@@ -250,6 +247,6 @@ public class BlueSolo extends CommandOpMode {
 //                + 0.43875;
 //    }
     public static double computeHoodPosition(double x) {
-        return (-(1.67969 * Math.pow(10, -9)) * Math.pow(x, 4)) + ((5.93206 * Math.pow(10, -7)) * Math.pow(x, 3)) - 0.0000619875 * Math.pow(x, 2) + 0.00105249*x + 0.38746;
+        return (-(1.67969 * Math.pow(10, -9)) * Math.pow(x, 4)) + ((5.93206 * Math.pow(10, -7)) * Math.pow(x, 3)) - (0.0000619875 * Math.pow(x, 2)) + 0.00105249*x + 0.38746;
     }
 }

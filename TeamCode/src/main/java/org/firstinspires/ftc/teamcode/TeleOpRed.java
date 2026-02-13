@@ -36,8 +36,8 @@ public class TeleOpRed extends CommandOpMode {
     public static double slow = 1;
 
     public static double offset = 0;
-    public static double targetX = 71;
-    public static double targetY = 71;
+    public static double targetX = 143;
+    public static double targetY = 143;
     private static double shootvel = 0;
     private static boolean aimornot = false;
 
@@ -64,6 +64,9 @@ public class TeleOpRed extends CommandOpMode {
         KickerSubsystem kicker = new KickerSubsystem(hardwareMap);
         HoodSubsystem hood = new HoodSubsystem(hardwareMap, telemetry);
         TurretSubsystem turret = new TurretSubsystem(hardwareMap);
+
+        // ⭐ RESTORE TURRET ANGLE FROM AUTO
+        turret.setInitialAngle(StateTransfer.turretInitial);
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
@@ -99,11 +102,6 @@ public class TeleOpRed extends CommandOpMode {
         // DRIVER CONTROLS
         // =========================
 
-        //new GamepadButton(driver, GamepadKeys.Button.B).toggleWhenPressed(
-        //        new InstantCommand(() -> driveSpeed = slow),
-        //        new InstantCommand(() -> driveSpeed = fast)
-        //);
-
         new GamepadButton(driver, GamepadKeys.Button.B).toggleWhenPressed(
                 new InstantCommand(() -> turret.holdAtZero(true)),
                 new InstantCommand(() -> turret.holdAtZero(false))
@@ -113,35 +111,19 @@ public class TeleOpRed extends CommandOpMode {
         // TOOLS CONTROLS
         // =========================
 
-        // ⭐ NEW HOOD CONTROL — Button A uses quadratic formula
-        //new GamepadButton(tools, GamepadKeys.Button.A).whenPressed(
-        //        new InstantCommand(() -> {
-        //            double distance = turret.getDistance();
-        //            double hoodPos = computeHoodPosition(distance);
-
-        //            hoodPos = Math.max(0.0, Math.min(1.0, hoodPos));
-        //            hood.setHoodPosition(hoodPos);
-        //        }, hood)
-        //);
-
-        // Reverse intake
         new GamepadButton(tools, GamepadKeys.Button.X).toggleWhenPressed(
                 new InstantCommand(() -> intake.setPower(1.0)),
                 new InstantCommand(() -> intake.setPower(0))
         );
 
-        // Kicker toggle
         new GamepadButton(tools, GamepadKeys.Button.Y)
                 .whileHeld(new RunCommand(() -> kicker.moveToHome()))
                 .whenReleased(new InstantCommand(() -> kicker.moveToTarget()));
 
-
-        // Belt feed
         new GamepadButton(tools, GamepadKeys.Button.LEFT_BUMPER)
                 .whileHeld(new RunCommand(() -> intake.setPower(1), intake))
                 .whenReleased(new InstantCommand(() -> intake.setPower(0)));
 
-        // Flywheel auto-RPM
         new GamepadButton(tools, GamepadKeys.Button.DPAD_UP).toggleWhenPressed(
                 new InstantCommand(() -> aimornot = true),
                 new InstantCommand(() -> aimornot = false)
@@ -153,41 +135,12 @@ public class TeleOpRed extends CommandOpMode {
         new GamepadButton(driver, GamepadKeys.Button.DPAD_RIGHT).whenPressed(
                 new InstantCommand(() -> offset = offset - 4)
         );
-
-        // LOCALIZATION
-
-        // X -> robot against left wall
-        new GamepadButton(driver, GamepadKeys.Button.X).whenPressed(
-                new InstantCommand(() -> drive.setPose(new Pose(0,0,0))) //TODO: Change this pose its a default one
+        new GamepadButton(driver, GamepadKeys.Button.DPAD_DOWN).whenPressed(
+                new InstantCommand(() -> offset = 0)
         );
-        // A -> robot against back wall
-        new GamepadButton(driver, GamepadKeys.Button.A).whenPressed(
-                new InstantCommand(() -> drive.setPose(new Pose(0,0,0))) //TODO: Change this pose its a default one
+        new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
+                new InstantCommand(() -> drive.setPose(new Pose(-63,-63,0)))
         );
-        // B -> robot against right
-        new GamepadButton(driver, GamepadKeys.Button.B).whenPressed(
-                new InstantCommand(() -> drive.setPose(new Pose(0,0,0))) //TODO: Change this pose its a default one
-        );
-        // Y -> robot against front wall
-        new GamepadButton(driver, GamepadKeys.Button.Y).whenPressed(
-                new InstantCommand(() -> drive.setPose(new Pose(0,0,0))) //TODO: Change this pose its a default one
-        );
-
-
-
-
-        // LIMELIGHT UPDATE
-        schedule(new RunCommand(() -> {
-            LLResult result = limelight.getLatestResult();
-
-            if (result != null && result.isValid()) {
-                tx = result.getTx();
-                hasTarget = true;
-            } else {
-                tx = 0;
-                hasTarget = false;
-            }
-        }));
 
         // MAIN LOOP
         schedule(new RunCommand(() -> {
@@ -197,11 +150,13 @@ public class TeleOpRed extends CommandOpMode {
 
             hoodPos = Math.max(0.0, Math.min(1.0, hoodPos));
             hood.setHoodPosition(hoodPos);
+
             if (aimornot) {
                 outtake.setVelocityRpm(computeY(turret.getDistance()));
             } else {
                 outtake.setVelocityRpm(0);
             }
+
             Pose pose = drive.getPose();
 
             double robotX = pose.getX();
@@ -211,7 +166,6 @@ public class TeleOpRed extends CommandOpMode {
             double aimAngle = turret.calculateAimAngle(
                     robotX, robotY, robotHeadingDeg,
                     targetX, targetY
-
             );
 
             turret.goToAngle(aimAngle + offset);
@@ -242,24 +196,11 @@ public class TeleOpRed extends CommandOpMode {
         schedule(driveCommand);
     }
 
-    // Flywheel RPM curve
-//    public static double computeY(double x) {
-//        double exponent = -(0.0127895 * x - 0.9517);
-//        double denominator = 1.0 + Math.exp(exponent);
-//        return 5041.10161 / denominator;
-//    }
-
     public static double computeY(double x) {
-        return (0.0000175768 * Math.pow(x, 4)) - (0.00579237 * Math.pow(x, 3)) + (0.703251 * Math.pow(x, 2)) - (21.63918*x) + 1947.14785;
+        return (0.0000175768 * Math.pow(x, 4)) - (0.00579237 * Math.pow(x, 3)) + (0.703251 * Math.pow(x, 2)) - (21.63918*x) + 1997.14785;
     }
 
-    // ⭐ HOOD QUADRATIC FORMULA
-//    public static double computeHoodPosition(double x) {
-//        return 0.00000892857 * x * x
-//                - 0.00195833 * x
-//                + 0.43875;
-//    }
     public static double computeHoodPosition(double x) {
-        return (-(1.67969 * Math.pow(10, -9)) * Math.pow(x, 4)) + ((5.93206 * Math.pow(10, -7)) * Math.pow(x, 3)) - 0.0000619875 * Math.pow(x, 2) + 0.00105249*x + 0.38746;
+        return (-(1.67969 * Math.pow(10, -9)) * Math.pow(x, 4)) + ((5.93206 * Math.pow(10, -7)) * Math.pow(x, 3)) - (0.0000619875 * Math.pow(x, 2)) + 0.00105249*x + 0.38746;
     }
 }

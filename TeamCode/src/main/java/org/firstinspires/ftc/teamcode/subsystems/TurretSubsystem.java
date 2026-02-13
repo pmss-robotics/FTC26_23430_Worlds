@@ -1,12 +1,14 @@
 package org.firstinspires.ftc.teamcode.subsystems;
 
+import static org.firstinspires.ftc.teamcode.util.StateTransfer.turretInitial;
+
 import com.acmerobotics.dashboard.config.Config;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-
+import com.qualcomm.robotcore.util.Range;
 import com.seattlesolvers.solverslib.command.Subsystem;
-
+import org.firstinspires.ftc.teamcode.util.StateTransfer;
 @Config
 public class TurretSubsystem implements Subsystem {
 
@@ -14,14 +16,17 @@ public class TurretSubsystem implements Subsystem {
 
     public static double TICKS_PER_REV = 526.54;
 
-    //PID coefficients
-    public static double kP = 0.056;   // UPDATED
+    // PID coefficients
+    public static double kP = 0.075;
     public static double kI = 0.0;
-    public static double kD = 0.0002;
+    public static double kD = 0.0004;
 
     // Safe rotation limits
-    public static double MIN_ANGLE = -130;   // right
-    public static double MAX_ANGLE = 130;    // left
+    public static double MIN_ANGLE = -150;
+    public static double MAX_ANGLE = 150;
+
+    // Desired startup angle
+    public static double INITIAL_ANGLE = turretInitial;   // <<< CHANGE THIS
 
     // Hold-zero mode
     public boolean holdZero = false;
@@ -30,7 +35,10 @@ public class TurretSubsystem implements Subsystem {
     private double lastError = 0;
 
     private double dx = 0;
-    private double dy =0;
+    private double dy = 0;
+
+    // Angle offset
+    private double angleOffset = 0;
 
     public TurretSubsystem(HardwareMap hardwareMap) {
         turretMotor = hardwareMap.get(DcMotor.class, "turret");
@@ -39,20 +47,33 @@ public class TurretSubsystem implements Subsystem {
         turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        // Positive = LEFT, Negative = RIGHT
         turretMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        // Apply initial angle offset
+        setInitialAngle(INITIAL_ANGLE);
     }
 
+    // Raw encoder angle (no offset)
+    private double getRawAngle() {
+        return (turretMotor.getCurrentPosition() / TICKS_PER_REV) * 360.0;
+    }
+
+    // Public angle with offset applied
     public double getTurretAngle() {
-        double angle = (turretMotor.getCurrentPosition() / TICKS_PER_REV) * 360.0;
-        return normalizeAngle(angle);
+        return normalizeAngle(getRawAngle() + angleOffset);
     }
 
+    // Normalize to [-180, 180]
     private double normalizeAngle(double angle) {
         angle %= 360.0;
         if (angle > 180.0) angle -= 360.0;
         if (angle < -180.0) angle += 360.0;
         return angle;
+    }
+
+    // Set the turret's "starting angle"
+    public void setInitialAngle(double angleDeg) {
+        angleOffset = angleDeg - getRawAngle();
     }
 
     public double calculateAimAngle(double robotX, double robotY, double robotHeadingDeg,
@@ -62,14 +83,13 @@ public class TurretSubsystem implements Subsystem {
         dy = targetY - robotY;
 
         double angleToTarget = Math.toDegrees(Math.atan2(dy, dx));
-
         double turretAngle = angleToTarget - robotHeadingDeg;
 
         return normalizeAngle(turretAngle);
     }
 
-    public double getDistance(){
-        return Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+    public double getDistance() {
+        return Math.sqrt(dx * dx + dy * dy);
     }
 
     public void holdAtZero(boolean hold) {
@@ -78,18 +98,14 @@ public class TurretSubsystem implements Subsystem {
 
     public void goToAngle(double targetAngle) {
 
-        // Override with hold-zero
-        if (holdZero) {
-            targetAngle = 0;
-        }
+        if (holdZero) targetAngle = 0;
 
-        // Clamp target
-        targetAngle = Math.max(MIN_ANGLE, Math.min(MAX_ANGLE, targetAngle));
+        targetAngle = Range.clip(targetAngle, MIN_ANGLE, MAX_ANGLE);
 
         double current = getTurretAngle();
         double error = normalizeAngle(targetAngle - current);
 
-        // HARD STOP protection
+        // Hard stop protection
         if (current >= MAX_ANGLE && error > 0) {
             turretMotor.setPower(0);
             return;
@@ -106,8 +122,7 @@ public class TurretSubsystem implements Subsystem {
 
         double output = (kP * error) + (kI * integral) + (kD * derivative);
 
-        // Clamp power
-        output = Math.max(-0.8, Math.min(0.8, output));
+        output = Range.clip(output, -0.8, 0.8);
 
         turretMotor.setPower(output);
     }

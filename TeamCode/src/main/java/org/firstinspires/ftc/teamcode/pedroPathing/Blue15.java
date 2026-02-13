@@ -14,7 +14,7 @@ import com.seattlesolvers.solverslib.command.InstantCommand;
 import org.firstinspires.ftc.teamcode.subsystems.*;
 import org.firstinspires.ftc.teamcode.util.StateTransfer;
 
-@Autonomous(name = "RED |15|", group = "Autonomous")
+@Autonomous(name = "BLUE |15|", group = "Autonomous")
 public class Blue15 extends OpMode {
     KickerSubsystem kicker;
     private Servo indicator;
@@ -23,8 +23,8 @@ public class Blue15 extends OpMode {
     FlywheelSubsystem outtake;
     TurretSubsystem turret;
     private  boolean aimornot = false;
-    public static double targetX = 143;
-    public static double targetY = 143;
+    public static double targetX = 144;
+    public static double targetY = 144;
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
 
