@@ -6,19 +6,16 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.InstantCommand;
-import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.RunCommand;
-import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.button.GamepadButton;
 import com.seattlesolvers.solverslib.gamepad.GamepadEx;
 import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.seattlesolvers.solverslib.geometry.Pose2d;
 
 import org.firstinspires.ftc.teamcode.commands.PedroDriveCommand;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
@@ -28,27 +25,23 @@ import org.firstinspires.ftc.teamcode.util.StateTransfer;
 import java.util.Objects;
 
 @Config
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "BlueSolo", group = "TeleOp")
-public class BlueSolo extends CommandOpMode {
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "|R|Dual|SOTM|", group = "TeleOp")
+public class RedDuoSOTM extends CommandOpMode {
 
     public static double driveSpeed = 1;
     public static double fast = 1;
     public static double slow = 1;
 
     public static double offset = 0;
-    public static double targetX = 143;
-    public static double targetY = -143;
-    private static double shootvel = 0;
-    private static boolean aimornot = false;
+    public static double targetX = 144;
+    public static double targetY = 144;
 
-    private static int flywheelVelocity = 0;
+    private static boolean aimornot = false;
 
     GamepadEx driver, tools;
     PedroDriveSubsystem drive;
 
     private Limelight3A limelight;
-    private double tx = 0;
-    private boolean hasTarget = false;
 
     private Servo indicator;
 
@@ -63,7 +56,9 @@ public class BlueSolo extends CommandOpMode {
         IntakeSubsystemNew intake = new IntakeSubsystemNew(hardwareMap, telemetry);
         KickerSubsystem kicker = new KickerSubsystem(hardwareMap);
         HoodSubsystem hood = new HoodSubsystem(hardwareMap, telemetry);
-        TurretSubsystem turret = new TurretSubsystem(hardwareMap);
+        MovingWhileShooting turret = new MovingWhileShooting(hardwareMap);
+
+        turret.setInitialAngle(StateTransfer.turretInitial);
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
@@ -99,50 +94,25 @@ public class BlueSolo extends CommandOpMode {
         // DRIVER CONTROLS
         // =========================
 
-        //new GamepadButton(driver, GamepadKeys.Button.B).toggleWhenPressed(
-        //        new InstantCommand(() -> driveSpeed = slow),
-        //        new InstantCommand(() -> driveSpeed = fast)
-        //);
-
         new GamepadButton(driver, GamepadKeys.Button.B).toggleWhenPressed(
                 new InstantCommand(() -> turret.holdAtZero(true)),
                 new InstantCommand(() -> turret.holdAtZero(false))
         );
 
-        // =========================
-        // TOOLS CONTROLS
-        // =========================
-
-        // ⭐ NEW HOOD CONTROL — Button A uses quadratic formula
-        //new GamepadButton(tools, GamepadKeys.Button.A).whenPressed(
-        //        new InstantCommand(() -> {
-        //            double distance = turret.getDistance();
-        //            double hoodPos = computeHoodPosition(distance);
-
-        //            hoodPos = Math.max(0.0, Math.min(1.0, hoodPos));
-        //            hood.setHoodPosition(hoodPos);
-        //        }, hood)
-        //);
-
-        // Reverse intake
-        new GamepadButton(driver, GamepadKeys.Button.X).toggleWhenPressed(
+        new GamepadButton(tools, GamepadKeys.Button.X).toggleWhenPressed(
                 new InstantCommand(() -> intake.setPower(1.0)),
                 new InstantCommand(() -> intake.setPower(0))
         );
 
-        // Kicker toggle
-        new GamepadButton(driver, GamepadKeys.Button.Y)
-                .whileHeld(new RunCommand(() -> kicker.moveToHome()))
-                .whenReleased(new InstantCommand(() -> kicker.moveToTarget()));
+        new GamepadButton(tools, GamepadKeys.Button.Y)
+                .whileHeld(new RunCommand(kicker::moveToHome))
+                .whenReleased(new InstantCommand(kicker::moveToTarget));
 
-
-        // Belt feed
-        new GamepadButton(driver, GamepadKeys.Button.LEFT_BUMPER)
+        new GamepadButton(tools, GamepadKeys.Button.LEFT_BUMPER)
                 .whileHeld(new RunCommand(() -> intake.setPower(1), intake))
                 .whenReleased(new InstantCommand(() -> intake.setPower(0)));
 
-        // Flywheel auto-RPM
-        new GamepadButton(driver, GamepadKeys.Button.DPAD_UP).toggleWhenPressed(
+        new GamepadButton(tools, GamepadKeys.Button.DPAD_UP).toggleWhenPressed(
                 new InstantCommand(() -> aimornot = true),
                 new InstantCommand(() -> aimornot = false)
         );
@@ -156,55 +126,54 @@ public class BlueSolo extends CommandOpMode {
         new GamepadButton(driver, GamepadKeys.Button.DPAD_DOWN).whenPressed(
                 new InstantCommand(() -> offset = 0)
         );
+
         new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
-                new InstantCommand(() -> drive.setPose(new Pose(-63,-63,0))) //TODO: Change this pose its a default one
+                new InstantCommand(() -> drive.setPose(new Pose(9, 9, 0)))
         );
-
-
-/*
-        // LIMELIGHT UPDATE
-        schedule(new RunCommand(() -> {
-            LLResult result = limelight.getLatestResult();
-
-            if (result != null && result.isValid()) {
-                tx = result.getTx();
-                hasTarget = true;
-            } else {
-                tx = 0;
-                hasTarget = false;
-            }
-        }));
- */
 
         // MAIN LOOP
         schedule(new RunCommand(() -> {
 
-            double distance = turret.getDistance();
-            double hoodPos = computeHoodPosition(distance);
-
-            hoodPos = Math.max(0.0, Math.min(1.0, hoodPos));
-            hood.setHoodPosition(hoodPos);
-            if (aimornot) {
-                outtake.setVelocityRpm(computeY(turret.getDistance()));
-            } else {
-                outtake.setVelocityRpm(0);
-            }
             Pose pose = drive.getPose();
-
             double robotX = pose.getX();
             double robotY = pose.getY();
             double robotHeadingDeg = Math.toDegrees(pose.getHeading());
 
-            double aimAngle = turret.calculateAimAngle(
+            // You may need to adjust this depending on PedroDriveSubsystem API
+            Vector vel = drive.getVelocity(); // field-centric velocity
+            double robotVx = vel.getXComponent();
+            double robotVy = vel.getYComponent();
+
+            // Lead-compensated aim
+            double aimAngle = turret.calculateAimAngleWithLead(
                     robotX, robotY, robotHeadingDeg,
-                    targetX, targetY
+                    targetX, targetY,
+                    robotVx, robotVy
 
             );
 
             turret.goToAngle(aimAngle + offset);
 
+            // Effective distance after lead
+            double distance = turret.getDistance();
+
+            // Hood position from distance
+            double hoodPos = computeHoodPosition(distance);
+            hoodPos = Math.max(0.0, Math.min(1.0, hoodPos));
+            if (hoodPos < 0.3) {
+                hoodPos = 0.3;
+            }
+            hood.setHoodPosition(hoodPos);
+
+            // Flywheel RPM from distance
+            if (aimornot) {
+                outtake.setVelocityRpm(computeY(distance));
+            } else {
+                outtake.setVelocityRpm(0);
+            }
+
             double turretAngle = turret.getTurretAngle();
-            double error = Math.abs(aimAngle - turretAngle);
+            double error = Math.abs(aimAngle - turretAngle + offset);
 
             if (error < 2) {
                 indicator.setPosition(0.611);
@@ -218,7 +187,9 @@ public class BlueSolo extends CommandOpMode {
             telemetry.addData("Flywheel RPM", outtake.getTargetRPM());
             telemetry.addData("Actual Outtake RPM", outtake.getActualRpm());
             telemetry.addData("Actual Outtake 2 RPM", outtake.getActualRpm2());
-            telemetry.addData("Distance to goal", turret.getDistance());
+            telemetry.addData("Distance to goal (effective)", distance);
+            telemetry.addData("Robot Vx", robotVx);
+            telemetry.addData("Robot Vy", robotVy);
             telemetry.update();
 
             TelemetryPacket packet = new TelemetryPacket();
@@ -229,24 +200,19 @@ public class BlueSolo extends CommandOpMode {
         schedule(driveCommand);
     }
 
-    // Flywheel RPM curve
-//    public static double computeY(double x) {
-//        double exponent = -(0.0127895 * x - 0.9517);
-//        double denominator = 1.0 + Math.exp(exponent);
-//        return 5041.10161 / denominator;
-//    }
-
     public static double computeY(double x) {
-        return (0.0000175768 * Math.pow(x, 4)) - (0.00579237 * Math.pow(x, 3)) + (0.703251 * Math.pow(x, 2)) - (21.63918*x) + 1997.14785;
+        return (0.0000175768 * Math.pow(x, 4))
+                - (0.00579237 * Math.pow(x, 3))
+                + (0.703251 * Math.pow(x, 2))
+                - (21.63918 * x)
+                + 1997.14785;
     }
 
-    // ⭐ HOOD QUADRATIC FORMULA
-//    public static double computeHoodPosition(double x) {
-//        return 0.00000892857 * x * x
-//                - 0.00195833 * x
-//                + 0.43875;
-//    }
     public static double computeHoodPosition(double x) {
-        return (-(1.67969 * Math.pow(10, -9)) * Math.pow(x, 4)) + ((5.93206 * Math.pow(10, -7)) * Math.pow(x, 3)) - (0.0000619875 * Math.pow(x, 2)) + 0.00105249*x + 0.38746;
+        return (-(1.67969e-9) * Math.pow(x, 4))
+                + ((5.93206e-7) * Math.pow(x, 3))
+                - (0.0000619875 * Math.pow(x, 2))
+                + 0.00105249 * x
+                + 0.38746;
     }
 }

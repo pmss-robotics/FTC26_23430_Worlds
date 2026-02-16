@@ -1,30 +1,18 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
-import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.geometry.BezierCurve;
-import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.Path;
-import com.pedropathing.paths.PathChain;
-import com.pedropathing.util.Timer;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.seattlesolvers.solverslib.command.InstantCommand;
-import org.firstinspires.ftc.teamcode.subsystems.*;
-import org.firstinspires.ftc.teamcode.util.StateTransfer;
+import com.pedropathing.follower.Follower; import com.pedropathing.geometry.BezierLine; import com.pedropathing.geometry.BezierCurve; import com.pedropathing.geometry.Pose; import com.pedropathing.paths.Path; import com.pedropathing.paths.PathChain; import com.pedropathing.util.Timer; import com.qualcomm.robotcore.eventloop.opmode.Autonomous; import com.qualcomm.robotcore.eventloop.opmode.OpMode; import com.qualcomm.robotcore.hardware.Servo; import com.seattlesolvers.solverslib.command.InstantCommand; import org.firstinspires.ftc.teamcode.subsystems.*; import org.firstinspires.ftc.teamcode.util.StateTransfer;
 
-@Autonomous(name = "Frog |B|15|", group = "Autonomous")
-public class FrogAuto extends OpMode {
+@Autonomous(name = "Frog |R|15|", group = "Autonomous")
+public class  FrogAutoRed extends OpMode {
     KickerSubsystem kicker;
     private Servo indicator;
     IntakeSubsystemNew intake;
     HoodSubsystem hood;
     FlywheelSubsystem outtake;
     TurretSubsystem turret;
-    private  boolean aimornot = false;
+    private boolean aimornot = false;
     public static double targetX = 144;
-    public static double targetY = 0;
+    public static double targetY = 144;
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
 
@@ -48,7 +36,7 @@ public class FrogAuto extends OpMode {
 
         follower = Constants.createFollower(hardwareMap);
         buildPaths();
-        follower.setStartingPose(new Pose(116.5, 14.2, Math.toRadians(-38)));
+        follower.setStartingPose(new Pose(116.5, 14.2, Math.toRadians(38)));
     }
 
     @Override
@@ -122,81 +110,81 @@ public class FrogAuto extends OpMode {
         StateTransfer.posePedro = follower.getPose();
     }
 
-    public void  buildPaths() {
+    public void buildPaths() {
         Path1 = new Path(new BezierLine(
-                new Pose(116.5, 14.2),
-                new Pose(92, 55.8)
+                new Pose(116.5, 144 - 14.2),
+                new Pose(92, 144 - 55.8)
         ));
-        Path1.setLinearHeadingInterpolation(Math.toRadians(-38), Math.toRadians(0));
+        Path1.setLinearHeadingInterpolation(Math.toRadians(38), Math.toRadians(0));
 
         Path2 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(92, 55.8),
-                                new Pose(83, 92),
-                                new Pose(143, 92),
-                                new Pose(92, 92),
-                                new Pose(123, 78)
+                                new Pose(92, 144 - 55.8),
+                                new Pose(83, 144 - 92),
+                                new Pose(143, 144 - 92),
+                                new Pose(92, 144 - 92),
+                                new Pose(123, 144 - 78)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
 
         Path3 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(124.5, 78),
-                                new Pose(98, 84),
-                                new Pose(95, 66)
+                                new Pose(124.5, 144 - 78),
+                                new Pose(98, 144 - 84),
+                                new Pose(95, 144 - 66)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
 
         Path4 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(95, 66),
-                                new Pose(98, 78),
-                                new Pose(132.5, 82.8)
+                                new Pose(95, 144 - 66),
+                                new Pose(98, 144 - 78),
+                                new Pose(132.5, 144 - 82.8)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(-21.5))
+                ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(21.5))
                 .build();
 
         Path5 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(132.5, 82.8),
-                                new Pose(92, 80),
-                                new Pose(95, 66)
+                                new Pose(132.5, 144 - 82.8),
+                                new Pose(92, 144 - 80),
+                                new Pose(95, 144 - 66)
                         )
-                ).setLinearHeadingInterpolation(Math.toRadians(-21.5), Math.toRadians(0))
+                ).setLinearHeadingInterpolation(Math.toRadians(21.5), Math.toRadians(0))
                 .build();
 
         Path6 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(95, 66),
-                                new Pose(102, 60),
-                                new Pose(124.000, 58)
+                                new Pose(95, 144 - 66),
+                                new Pose(102, 144 - 60),
+                                new Pose(124.000, 144 - 58)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
 
         Path7 = follower.pathBuilder().addPath(
                         new BezierLine(
-                                new Pose(124.000, 58),
-                                new Pose(96.000, 62.000)
+                                new Pose(124.000, 144 - 58),
+                                new Pose(96.000, 144 - 62.000)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
 
         Path8 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(96.000, 62.000),
-                                new Pose(90.000, 110.000),
-                                new Pose(130.000, 110.000)
+                                new Pose(96.000, 144 - 62.000),
+                                new Pose(90.000, 144 - 110.000),
+                                new Pose(130.000, 144 - 110.000)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
 
         Path9 = follower.pathBuilder().addPath(
                         new BezierLine(
-                                new Pose(130, 110.000),
-                                new Pose(86, 34)
+                                new Pose(130, 144 - 110.000),
+                                new Pose(86, 144 - 34)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
@@ -352,10 +340,10 @@ public class FrogAuto extends OpMode {
     }
 
     public static double computeY(double x) {
-        return (0.0000175768 * Math.pow(x, 4)) - (0.00579237 * Math.pow(x, 3)) + (0.703251 * Math.pow(x, 2)) - (21.63918*x) + 1980.14785;
+        return (0.0000175768 * Math.pow(x, 4)) - (0.00579237 * Math.pow(x, 3)) + (0.703251 * Math.pow(x, 2)) - (21.63918 * x) + 1980.14785;
     }
 
     public static double computeHoodPosition(double x) {
-        return (-(1.67969 * Math.pow(10, -9)) * Math.pow(x, 4)) + ((5.93206 * Math.pow(10, -7)) * Math.pow(x, 3)) - 0.0000619875 * Math.pow(x, 2) + 0.00105249*x + 0.38746;
+        return (-(1.67969 * Math.pow(10, -9)) * Math.pow(x, 4)) + ((5.93206 * Math.pow(10, -7)) * Math.pow(x, 3)) - 0.0000619875 * Math.pow(x, 2) + 0.00105249 * x + 0.38746;
     }
 }

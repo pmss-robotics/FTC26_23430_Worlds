@@ -6,19 +6,16 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.InstantCommand;
-import com.seattlesolvers.solverslib.command.ParallelCommandGroup;
 import com.seattlesolvers.solverslib.command.RunCommand;
-import com.seattlesolvers.solverslib.command.SequentialCommandGroup;
 import com.seattlesolvers.solverslib.command.button.GamepadButton;
 import com.seattlesolvers.solverslib.gamepad.GamepadEx;
 import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 
 import com.qualcomm.hardware.limelightvision.Limelight3A;
-import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.seattlesolvers.solverslib.geometry.Pose2d;
 
 import org.firstinspires.ftc.teamcode.commands.PedroDriveCommand;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
@@ -28,27 +25,23 @@ import org.firstinspires.ftc.teamcode.util.StateTransfer;
 import java.util.Objects;
 
 @Config
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "RedSolo", group = "TeleOp")
-public class RedSolo extends CommandOpMode {
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "|B|Dual|SOTM|", group = "TeleOp")
+public class BlueDuoSOTM extends CommandOpMode {
 
     public static double driveSpeed = 1;
     public static double fast = 1;
     public static double slow = 1;
 
     public static double offset = 0;
-    public static double targetX = 145;
-    public static double targetY = 145;
-    private static double shootvel = 0;
-    private static boolean aimornot = false;
+    public static double targetX = 144;
+    public static double targetY = 0;
 
-    private static int flywheelVelocity = 0;
+    private static boolean aimornot = false;
 
     GamepadEx driver, tools;
     PedroDriveSubsystem drive;
 
     private Limelight3A limelight;
-    private double tx = 0;
-    private boolean hasTarget = false;
 
     private Servo indicator;
 
@@ -63,9 +56,8 @@ public class RedSolo extends CommandOpMode {
         IntakeSubsystemNew intake = new IntakeSubsystemNew(hardwareMap, telemetry);
         KickerSubsystem kicker = new KickerSubsystem(hardwareMap);
         HoodSubsystem hood = new HoodSubsystem(hardwareMap, telemetry);
-        TurretSubsystem turret = new TurretSubsystem(hardwareMap);
+        MovingWhileShooting turret = new MovingWhileShooting(hardwareMap);
 
-        // ⭐ RESTORE TURRET ANGLE FROM AUTO
         turret.setInitialAngle(StateTransfer.turretInitial);
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -107,24 +99,20 @@ public class RedSolo extends CommandOpMode {
                 new InstantCommand(() -> turret.holdAtZero(false))
         );
 
-        // =========================
-        // TOOLS CONTROLS
-        // =========================
-
-        new GamepadButton(driver, GamepadKeys.Button.X).toggleWhenPressed(
+        new GamepadButton(tools, GamepadKeys.Button.X).toggleWhenPressed(
                 new InstantCommand(() -> intake.setPower(1.0)),
                 new InstantCommand(() -> intake.setPower(0))
         );
 
-        new GamepadButton(driver, GamepadKeys.Button.Y)
-                .whileHeld(new RunCommand(() -> kicker.moveToHome()))
-                .whenReleased(new InstantCommand(() -> kicker.moveToTarget()));
+        new GamepadButton(tools, GamepadKeys.Button.Y)
+                .whileHeld(new RunCommand(kicker::moveToHome))
+                .whenReleased(new InstantCommand(kicker::moveToTarget));
 
-        new GamepadButton(driver, GamepadKeys.Button.LEFT_BUMPER)
+        new GamepadButton(tools, GamepadKeys.Button.LEFT_BUMPER)
                 .whileHeld(new RunCommand(() -> intake.setPower(1), intake))
                 .whenReleased(new InstantCommand(() -> intake.setPower(0)));
 
-        new GamepadButton(driver, GamepadKeys.Button.DPAD_UP).toggleWhenPressed(
+        new GamepadButton(tools, GamepadKeys.Button.DPAD_UP).toggleWhenPressed(
                 new InstantCommand(() -> aimornot = true),
                 new InstantCommand(() -> aimornot = false)
         );
@@ -138,42 +126,56 @@ public class RedSolo extends CommandOpMode {
         new GamepadButton(driver, GamepadKeys.Button.DPAD_DOWN).whenPressed(
                 new InstantCommand(() -> offset = 0)
         );
+
         new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
-                new InstantCommand(() -> drive.setPose(new Pose(9,9,0)))
+                new InstantCommand(() -> drive.setPose(new Pose(9, 135, 0)))
         );
 
         // MAIN LOOP
         schedule(new RunCommand(() -> {
 
-            double distance = turret.getDistance();
-            double hoodPos = computeHoodPosition(distance);
-
-            hoodPos = Math.max(0.0, Math.min(1.0, hoodPos));
-            hood.setHoodPosition(hoodPos);
-
-            if (aimornot) {
-                outtake.setVelocityRpm(computeY(turret.getDistance()));
-            } else {
-                outtake.setVelocityRpm(0);
-            }
-
             Pose pose = drive.getPose();
-
             double robotX = pose.getX();
             double robotY = pose.getY();
             double robotHeadingDeg = Math.toDegrees(pose.getHeading());
 
-            double aimAngle = turret.calculateAimAngle(
+            // You may need to adjust this depending on PedroDriveSubsystem API
+            Vector vel = drive.getVelocity(); // field-centric velocity
+            double robotVx = vel.getXComponent();
+            double robotVy = vel.getYComponent();
+
+            // Lead-compensated aim
+            double aimAngle = turret.calculateAimAngleWithLead(
                     robotX, robotY, robotHeadingDeg,
-                    targetX, targetY
+                    targetX, targetY,
+                    robotVx, robotVy
+
             );
 
             turret.goToAngle(aimAngle + offset);
 
+            // Effective distance after lead
+            double distance = turret.getDistance();
+
+            // Hood position from distance
+            double hoodPos = computeHoodPosition(distance);
+            hoodPos = Math.max(0.0, Math.min(1.0, hoodPos));
+            if (hoodPos < 0.3) {
+                hoodPos = 0.3;
+            }
+            hood.setHoodPosition(hoodPos);
+
+            // Flywheel RPM from distance
+            if (aimornot) {
+                outtake.setVelocityRpm(computeY(distance));
+            } else {
+                outtake.setVelocityRpm(0);
+            }
+
             double turretAngle = turret.getTurretAngle();
             double error = Math.abs(aimAngle - turretAngle + offset);
 
-            if (error < 1) {
+            if (error < 2) {
                 indicator.setPosition(0.611);
             } else {
                 indicator.setPosition(0.277);
@@ -185,7 +187,9 @@ public class RedSolo extends CommandOpMode {
             telemetry.addData("Flywheel RPM", outtake.getTargetRPM());
             telemetry.addData("Actual Outtake RPM", outtake.getActualRpm());
             telemetry.addData("Actual Outtake 2 RPM", outtake.getActualRpm2());
-            telemetry.addData("Distance to goal", turret.getDistance());
+            telemetry.addData("Distance to goal (effective)", distance);
+            telemetry.addData("Robot Vx", robotVx);
+            telemetry.addData("Robot Vy", robotVy);
             telemetry.update();
 
             TelemetryPacket packet = new TelemetryPacket();
@@ -197,10 +201,18 @@ public class RedSolo extends CommandOpMode {
     }
 
     public static double computeY(double x) {
-        return (0.0000175768 * Math.pow(x, 4)) - (0.00579237 * Math.pow(x, 3)) + (0.703251 * Math.pow(x, 2)) - (21.63918*x) + 1997.14785;
+        return (0.0000175768 * Math.pow(x, 4))
+                - (0.00579237 * Math.pow(x, 3))
+                + (0.703251 * Math.pow(x, 2))
+                - (21.63918 * x)
+                + 1997.14785;
     }
 
     public static double computeHoodPosition(double x) {
-        return (-(1.67969 * Math.pow(10, -9)) * Math.pow(x, 4)) + ((5.93206 * Math.pow(10, -7)) * Math.pow(x, 3)) - (0.0000619875 * Math.pow(x, 2)) + 0.00105249*x + 0.38746;
+        return (-(1.67969e-9) * Math.pow(x, 4))
+                + ((5.93206e-7) * Math.pow(x, 3))
+                - (0.0000619875 * Math.pow(x, 2))
+                + 0.00105249 * x
+                + 0.38746;
     }
 }
