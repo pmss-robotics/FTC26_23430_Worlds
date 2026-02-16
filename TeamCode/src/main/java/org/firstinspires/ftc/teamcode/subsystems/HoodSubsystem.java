@@ -17,7 +17,7 @@ public class HoodSubsystem implements Subsystem {
     public HoodSubsystem(HardwareMap hardwareMap, Telemetry telemetry){
         this.telemetry = telemetry;
         servoHood = hardwareMap.get(ServoImplEx.class, "hood");
-        servoHood.setPosition(HOME_POSITION);
+        servoHood.setPosition(TARGET_POSITION);
     }
 
     public void moveToTarget() {

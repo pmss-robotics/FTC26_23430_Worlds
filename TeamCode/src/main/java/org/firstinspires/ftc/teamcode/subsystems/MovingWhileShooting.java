@@ -220,7 +220,7 @@ public class MovingWhileShooting implements Subsystem {
     private double angleOffset = 0;
 
     // Approx projectile speed (in/s) – tune on dashboard
-    public static double PROJECTILE_SPEED = 85.0;
+    public static double PROJECTILE_SPEED = 75.0;
 
     public MovingWhileShooting(HardwareMap hardwareMap) {
         turretMotor = hardwareMap.get(DcMotor.class, "turret");

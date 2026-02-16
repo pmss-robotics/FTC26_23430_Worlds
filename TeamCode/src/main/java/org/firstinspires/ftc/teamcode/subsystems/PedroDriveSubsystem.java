@@ -37,6 +37,7 @@ public class PedroDriveSubsystem extends SubsystemBase {
     }
 
     public void setPose(Pose reset) {
+        follower.setPose(reset);
     }
 
     public Vector getVelocity() {

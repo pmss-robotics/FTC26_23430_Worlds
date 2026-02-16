@@ -25,16 +25,16 @@ import org.firstinspires.ftc.teamcode.util.StateTransfer;
 import java.util.Objects;
 
 @Config
-@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "SOTM", group = "TeleOp")
-public class SOTM extends CommandOpMode {
+@com.qualcomm.robotcore.eventloop.opmode.TeleOp(name = "|R|Solo|SOTM|", group = "TeleOp")
+public class RedSoloSOTM extends CommandOpMode {
 
     public static double driveSpeed = 1;
     public static double fast = 1;
     public static double slow = 1;
 
     public static double offset = 0;
-    public static double targetX = 143;
-    public static double targetY = 143;
+    public static double targetX = 144;
+    public static double targetY = 144;
 
     private static boolean aimornot = false;
 
@@ -126,6 +126,7 @@ public class SOTM extends CommandOpMode {
         new GamepadButton(driver, GamepadKeys.Button.DPAD_DOWN).whenPressed(
                 new InstantCommand(() -> offset = 0)
         );
+
         new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
                 new InstantCommand(() -> drive.setPose(new Pose(9, 9, 0)))
         );
@@ -159,6 +160,9 @@ public class SOTM extends CommandOpMode {
             // Hood position from distance
             double hoodPos = computeHoodPosition(distance);
             hoodPos = Math.max(0.0, Math.min(1.0, hoodPos));
+            if (hoodPos < 0.3) {
+                hoodPos = 0.3;
+            }
             hood.setHoodPosition(hoodPos);
 
             // Flywheel RPM from distance

@@ -19,7 +19,7 @@ public class TurretSubsystem implements Subsystem {
     // PID coefficients
     public static double kP = 0.075;
     public static double kI = 0.0;
-    public static double kD = 0.0004;
+    public static double kD = 0.003;
 
     // Safe rotation limits
     public static double MIN_ANGLE = -150;
