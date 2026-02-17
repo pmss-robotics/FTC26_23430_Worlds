@@ -167,7 +167,12 @@ public class RedDuoSOTM extends CommandOpMode {
 
             // Flywheel RPM from distance
             if (aimornot) {
-                outtake.setVelocityRpm(computeY(distance));
+                if (computeY(distance) < 1965) {
+                    outtake.setVelocityRpm(1965);
+                }
+                else {
+                    outtake.setVelocityRpm(computeY(distance));
+                }
             } else {
                 outtake.setVelocityRpm(0);
             }

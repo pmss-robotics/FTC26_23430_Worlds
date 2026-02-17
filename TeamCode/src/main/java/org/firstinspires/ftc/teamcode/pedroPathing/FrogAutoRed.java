@@ -36,7 +36,7 @@ public class  FrogAutoRed extends OpMode {
 
         follower = Constants.createFollower(hardwareMap);
         buildPaths();
-        follower.setStartingPose(new Pose(116.5, 14.2, Math.toRadians(38)));
+        follower.setStartingPose(new Pose(116.5, 144 - 14.2, Math.toRadians(38)));
     }
 
     @Override

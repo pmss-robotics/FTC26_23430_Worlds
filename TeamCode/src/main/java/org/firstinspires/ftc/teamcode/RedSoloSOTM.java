@@ -167,10 +167,16 @@ public class RedSoloSOTM extends CommandOpMode {
 
             // Flywheel RPM from distance
             if (aimornot) {
-                outtake.setVelocityRpm(computeY(distance));
+                if (computeY(distance) < 1965) {
+                    outtake.setVelocityRpm(1965);
+                }
+                else {
+                    outtake.setVelocityRpm(computeY(distance));
+                }
             } else {
                 outtake.setVelocityRpm(0);
             }
+
 
             double turretAngle = turret.getTurretAngle();
             double error = Math.abs(aimAngle - turretAngle + offset);
