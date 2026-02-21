@@ -48,7 +48,7 @@ public class Blue15 extends OpMode {
 
         follower = Constants.createFollower(hardwareMap);
         buildPaths();
-        follower.setStartingPose(new Pose(116.5, 14.2, Math.toRadians(-38)));
+        follower.setStartingPose(new Pose(114.22, 16.25, Math.toRadians(-90)));
     }
 
     @Override
@@ -124,14 +124,14 @@ public class Blue15 extends OpMode {
 
     public void  buildPaths() {
         Path1 = new Path(new BezierLine(
-                new Pose(116.5, 14.2),
-                new Pose(96, 55.8)
+                new Pose(114.22, 16.25),
+                new Pose(96, 45.8)
         ));
-        Path1.setLinearHeadingInterpolation(Math.toRadians(-38), Math.toRadians(0));
+        Path1.setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(0));
 
         Path2 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(96, 55.8),
+                                new Pose(96, 45.8),
                                 new Pose(92, 85.5),
                                 new Pose(123, 85.5)
                         )
@@ -142,14 +142,14 @@ public class Blue15 extends OpMode {
                         new BezierCurve(
                                 new Pose(123, 85.5),
                                 new Pose(98, 84),
-                                new Pose(95, 66)
+                                new Pose(90, 60)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
 
         Path4 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(95, 66),
+                                new Pose(90, 60),
                                 new Pose(98, 78),
                                 new Pose(132.5, 82.8)
                         )
@@ -160,14 +160,14 @@ public class Blue15 extends OpMode {
                         new BezierCurve(
                                 new Pose(132.5, 82.8),
                                 new Pose(92, 80),
-                                new Pose(95, 66)
+                                new Pose(90, 60)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(-21.5), Math.toRadians(0))
                 .build();
 
         Path6 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(95, 66),
+                                new Pose(90, 60),
                                 new Pose(102, 60),
                                 new Pose(124.000, 58)
                         )
@@ -350,7 +350,7 @@ public class Blue15 extends OpMode {
     }
 
     public static double computeY(double x) {
-        return (0.0000175768 * Math.pow(x, 4)) - (0.00579237 * Math.pow(x, 3)) + (0.703251 * Math.pow(x, 2)) - (21.63918*x) + 1997.14785;
+        return (0.0000175768 * Math.pow(x, 4)) - (0.00579237 * Math.pow(x, 3)) + (0.703251 * Math.pow(x, 2)) - (21.63918*x) + 1930.14785;
     }
 
     public static double computeHoodPosition(double x) {

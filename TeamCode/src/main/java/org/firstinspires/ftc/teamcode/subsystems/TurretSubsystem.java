@@ -17,13 +17,13 @@ public class TurretSubsystem implements Subsystem {
     public static double TICKS_PER_REV = 526.54;
 
     // PID coefficients
-    public static double kP = 0.075;
+    public static double kP = 0.062;
     public static double kI = 0.0;
-    public static double kD = 0.003;
+    public static double kD = 0.04;
 
     // Safe rotation limits
-    public static double MIN_ANGLE = -150;
-    public static double MAX_ANGLE = 150;
+    public static double MIN_ANGLE = -145;
+    public static double MAX_ANGLE = 145;
 
     // Desired startup angle
     public static double INITIAL_ANGLE = turretInitial;   // <<< CHANGE THIS
@@ -122,7 +122,7 @@ public class TurretSubsystem implements Subsystem {
 
         double output = (kP * error) + (kI * integral) + (kD * derivative);
 
-        output = Range.clip(output, -0.8, 0.8);
+        output = Range.clip(output, -1, 1);
 
         turretMotor.setPower(output);
     }

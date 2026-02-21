@@ -56,6 +56,7 @@ public class RedSoloSOTM extends CommandOpMode {
         IntakeSubsystemNew intake = new IntakeSubsystemNew(hardwareMap, telemetry);
         KickerSubsystem kicker = new KickerSubsystem(hardwareMap);
         HoodSubsystem hood = new HoodSubsystem(hardwareMap, telemetry);
+        BrakeSubsystem brake = new BrakeSubsystem(hardwareMap);
         MovingWhileShooting turret = new MovingWhileShooting(hardwareMap);
 
         turret.setInitialAngle(StateTransfer.turretInitial);
@@ -71,7 +72,7 @@ public class RedSoloSOTM extends CommandOpMode {
                 telemetry
         );
 
-        hood.moveToHome();
+        hood.moveToTarget();
 
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.setPollRateHz(100);
@@ -127,9 +128,16 @@ public class RedSoloSOTM extends CommandOpMode {
                 new InstantCommand(() -> offset = 0)
         );
 
-        new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
+        new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER)
+                .whileHeld(new RunCommand(brake::moveToHome))
+                .whenReleased(new RunCommand(brake::moveToTarget));
+
+        new GamepadButton(driver, GamepadKeys.Button.DPAD_DOWN).whenPressed(
                 new InstantCommand(() -> drive.setPose(new Pose(9, 9, 0)))
         );
+
+
+
 
         // MAIN LOOP
         schedule(new RunCommand(() -> {

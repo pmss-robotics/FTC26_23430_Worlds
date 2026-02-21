@@ -10,12 +10,12 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.Servo;
-
+import com.seattlesolvers.solverslib.command.InstantCommand;
 import org.firstinspires.ftc.teamcode.subsystems.*;
 import org.firstinspires.ftc.teamcode.util.StateTransfer;
 
 @Autonomous(name = "Frog |B|15|", group = "Autonomous")
-public class FrogAutoBlue extends OpMode {
+public class  FrogAutoBlue extends OpMode {
     KickerSubsystem kicker;
     private Servo indicator;
     IntakeSubsystemNew intake;
@@ -31,7 +31,7 @@ public class FrogAutoBlue extends OpMode {
     private int pathState;
 
     private Path Path1;
-    private PathChain Path2, Path3, Path4, Path5, Path6, Path7, Path8, Path9;
+    private PathChain Path2, Path3, Path4, Path5, Path6, Path7, Path8, Path9, Path10;
 
     @Override
     public void init() {
@@ -48,7 +48,7 @@ public class FrogAutoBlue extends OpMode {
 
         follower = Constants.createFollower(hardwareMap);
         buildPaths();
-        follower.setStartingPose(new Pose(116.5, 14.2, Math.toRadians(-38)));
+        follower.setStartingPose(new Pose(114.22, 16.25, Math.toRadians(-90)));
     }
 
     @Override
@@ -122,54 +122,54 @@ public class FrogAutoBlue extends OpMode {
         StateTransfer.posePedro = follower.getPose();
     }
 
-    public void  buildPaths() {
+    public void buildPaths() {
         Path1 = new Path(new BezierLine(
-                new Pose(116.5, 14.2),
+                new Pose(114.22, 16.25),
                 new Pose(92, 55.8)
         ));
-        Path1.setLinearHeadingInterpolation(Math.toRadians(-38), Math.toRadians(0));
+        Path1.setLinearHeadingInterpolation(Math.toRadians(-90), Math.toRadians(0));
 
         Path2 = follower.pathBuilder().addPath(
                         new BezierCurve(
                                 new Pose(92, 55.8),
-                                new Pose(83, 92),
-                                new Pose(143, 92),
-                                new Pose(92, 92),
-                                new Pose(123, 78)
+                                new Pose(83, 89),
+                                new Pose(120, 89),
+                                new Pose(106, 89),
+                                new Pose(126, 75)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
 
         Path3 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(124.5, 78),
+                                new Pose(126, 75),
                                 new Pose(98, 84),
-                                new Pose(95, 66)
+                                new Pose(91, 66)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
 
         Path4 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(95, 66),
+                                new Pose(91, 66),
                                 new Pose(98, 78),
-                                new Pose(132.5, 82.8)
+                                new Pose(132.5, 83.9)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(-21.5))
                 .build();
 
         Path5 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(132.5, 82.8),
+                                new Pose(132.5, 83.9),
                                 new Pose(92, 80),
-                                new Pose(95, 66)
+                                new Pose(91, 66)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(-21.5), Math.toRadians(0))
                 .build();
 
         Path6 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(95, 66),
+                                new Pose(91, 66),
                                 new Pose(102, 60),
                                 new Pose(124.000, 58)
                         )
@@ -200,6 +200,13 @@ public class FrogAutoBlue extends OpMode {
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
                 .build();
+        Path10 = follower.pathBuilder().addPath(
+                        new BezierLine(
+                                new Pose(96, 62),
+                                new Pose(104, 62)
+                        )
+                ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
+                .build();
     }
 
     public void autonomousPathUpdate() {
@@ -219,7 +226,7 @@ public class FrogAutoBlue extends OpMode {
                 }
                 break;
             case 2:
-                if (pathTimer.getElapsedTimeSeconds() > 1.5) {
+                if (pathTimer.getElapsedTimeSeconds() > 1) {
                     kicker.moveToTarget();
                     aimornot = false;
                     follower.followPath(Path2, true);
@@ -250,7 +257,7 @@ public class FrogAutoBlue extends OpMode {
                 }
                 break;
             case 6:
-                if (pathTimer.getElapsedTimeSeconds() > 2.75) {
+                if (pathTimer.getElapsedTimeSeconds() > 3.2) {
                     intake.setPower(0);
                     aimornot = true;
                     follower.followPath(Path5);
@@ -296,7 +303,7 @@ public class FrogAutoBlue extends OpMode {
                 }
                 break;
             case 2006:
-                if (pathTimer.getElapsedTimeSeconds() > 3) {
+                if (pathTimer.getElapsedTimeSeconds() > 2.8) {
                     intake.setPower(0);
                     aimornot = true;
                     follower.followPath(Path5);
@@ -338,6 +345,7 @@ public class FrogAutoBlue extends OpMode {
                     kicker.moveToTarget();
                     aimornot = false;
                     intake.setPower(0);
+                    follower.followPath(Path10);
                     setPathState(-1);
                 }
                 break;
@@ -352,10 +360,10 @@ public class FrogAutoBlue extends OpMode {
     }
 
     public static double computeY(double x) {
-        return (0.0000175768 * Math.pow(x, 4)) - (0.00579237 * Math.pow(x, 3)) + (0.703251 * Math.pow(x, 2)) - (21.63918*x) + 1980.14785;
+        return (0.0000175768 * Math.pow(x, 4)) - (0.00579237 * Math.pow(x, 3)) + (0.703251 * Math.pow(x, 2)) - (21.63918 * x) + 1940.14785;
     }
 
     public static double computeHoodPosition(double x) {
-        return (-(1.67969 * Math.pow(10, -9)) * Math.pow(x, 4)) + ((5.93206 * Math.pow(10, -7)) * Math.pow(x, 3)) - 0.0000619875 * Math.pow(x, 2) + 0.00105249*x + 0.38746;
+        return (-(1.67969 * Math.pow(10, -9)) * Math.pow(x, 4)) + ((5.93206 * Math.pow(10, -7)) * Math.pow(x, 3)) - 0.0000619875 * Math.pow(x, 2) + 0.00105249 * x + 0.38746;
     }
 }

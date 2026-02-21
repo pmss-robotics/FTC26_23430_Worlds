@@ -56,6 +56,7 @@ public class BlueSoloSOTM extends CommandOpMode {
         IntakeSubsystemNew intake = new IntakeSubsystemNew(hardwareMap, telemetry);
         KickerSubsystem kicker = new KickerSubsystem(hardwareMap);
         HoodSubsystem hood = new HoodSubsystem(hardwareMap, telemetry);
+        BrakeSubsystem brake = new BrakeSubsystem(hardwareMap);
         MovingWhileShooting turret = new MovingWhileShooting(hardwareMap);
 
         turret.setInitialAngle(StateTransfer.turretInitial);
@@ -71,8 +72,8 @@ public class BlueSoloSOTM extends CommandOpMode {
                 telemetry
         );
 
-        hood.moveToHome();
-
+        hood.moveToTarget();
+        brake.moveToTarget();
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.setPollRateHz(100);
         limelight.start();
@@ -112,6 +113,12 @@ public class BlueSoloSOTM extends CommandOpMode {
                 .whileHeld(new RunCommand(() -> intake.setPower(1), intake))
                 .whenReleased(new InstantCommand(() -> intake.setPower(0)));
 
+        new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER)
+                .whileHeld(new RunCommand(brake::moveToHome))
+                .whenReleased(new RunCommand(brake::moveToTarget));
+
+
+
         new GamepadButton(driver, GamepadKeys.Button.DPAD_UP).toggleWhenPressed(
                 new InstantCommand(() -> aimornot = true),
                 new InstantCommand(() -> aimornot = false)
@@ -124,12 +131,11 @@ public class BlueSoloSOTM extends CommandOpMode {
                 new InstantCommand(() -> offset = offset - 4)
         );
         new GamepadButton(driver, GamepadKeys.Button.DPAD_DOWN).whenPressed(
-                new InstantCommand(() -> offset = 0)
-        );
-
-        new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
                 new InstantCommand(() -> drive.setPose(new Pose(9, 135, 0)))
         );
+
+
+
 
         // MAIN LOOP
         schedule(new RunCommand(() -> {

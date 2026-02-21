@@ -50,7 +50,7 @@ public class Red15 extends OpMode {
 
         follower = Constants.createFollower(hardwareMap);
         buildPaths();
-        follower.setStartingPose(new Pose(116.5, 129.8, Math.toRadians(38)));
+        follower.setStartingPose(new Pose(114.22, 144 - 16.25, Math.toRadians(90)));
     }
 
     @Override
@@ -128,10 +128,10 @@ public class Red15 extends OpMode {
     }
     public void  buildPaths() {
                 Path1 = new Path(new BezierLine(
-                        new Pose(116.5, 129.8),
+                        new Pose(114.22, 144 - 16.25),
                         new Pose(96, 88.2)
                 ));
-                Path1.setLinearHeadingInterpolation(Math.toRadians(38), Math.toRadians(0));
+                Path1.setLinearHeadingInterpolation(Math.toRadians(90), Math.toRadians(0));
 
 
                 Path2 = follower.pathBuilder().addPath(
@@ -148,7 +148,7 @@ public class Red15 extends OpMode {
                                 new BezierCurve(
                                         new Pose(123, 58.5),
                                         new Pose(98, 60),
-                                        new Pose(95, 78)
+                                        new Pose(92, 78)
                                 )
                         ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(0))
 
@@ -156,7 +156,7 @@ public class Red15 extends OpMode {
 
                 Path4 = follower.pathBuilder().addPath(
                                 new BezierCurve(
-                                        new Pose(95, 78),
+                                        new Pose(92, 78),
                                         new Pose(98, 66),
                                         new Pose(132.5, 61.2)
                                 )
@@ -168,7 +168,7 @@ public class Red15 extends OpMode {
                                 new BezierCurve(
                                         new Pose(132.5, 61.2),
                                         new Pose(92, 64),
-                                        new Pose(95, 78)
+                                        new Pose(92, 78)
                                 )
                         ).setLinearHeadingInterpolation(Math.toRadians(21.5), Math.toRadians(0))
 
@@ -176,7 +176,7 @@ public class Red15 extends OpMode {
 
                 Path6 = follower.pathBuilder().addPath(
                                 new BezierCurve(
-                                        new Pose(95, 78),
+                                        new Pose(92, 78),
                                         new Pose (102, 84),
                                         new Pose(124.000, 86)
                                 )
@@ -367,7 +367,7 @@ public class Red15 extends OpMode {
     }
 
     public static double computeY(double x) {
-        return (0.0000175768 * Math.pow(x, 4)) - (0.00579237 * Math.pow(x, 3)) + (0.703251 * Math.pow(x, 2)) - (21.63918*x) + 1997.14785;
+        return (0.0000175768 * Math.pow(x, 4)) - (0.00579237 * Math.pow(x, 3)) + (0.703251 * Math.pow(x, 2)) - (21.63918*x) + 1930.14785;
     }
 
     public static double computeHoodPosition(double x) {

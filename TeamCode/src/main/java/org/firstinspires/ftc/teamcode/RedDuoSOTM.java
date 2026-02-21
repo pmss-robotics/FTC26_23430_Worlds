@@ -57,7 +57,7 @@ public class RedDuoSOTM extends CommandOpMode {
         KickerSubsystem kicker = new KickerSubsystem(hardwareMap);
         HoodSubsystem hood = new HoodSubsystem(hardwareMap, telemetry);
         MovingWhileShooting turret = new MovingWhileShooting(hardwareMap);
-
+        BrakeSubsystem brake = new BrakeSubsystem(hardwareMap);
         turret.setInitialAngle(StateTransfer.turretInitial);
 
         telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
@@ -71,8 +71,8 @@ public class RedDuoSOTM extends CommandOpMode {
                 telemetry
         );
 
-        hood.moveToHome();
-
+        hood.moveToTarget();
+        brake.moveToTarget();
         limelight = hardwareMap.get(Limelight3A.class, "limelight");
         limelight.setPollRateHz(100);
         limelight.start();
@@ -90,6 +90,7 @@ public class RedDuoSOTM extends CommandOpMode {
                 true
         );
 
+
         // =========================
         // DRIVER CONTROLS
         // =========================
@@ -99,14 +100,38 @@ public class RedDuoSOTM extends CommandOpMode {
                 new InstantCommand(() -> turret.holdAtZero(false))
         );
 
+
+
+
+        new GamepadButton(driver, GamepadKeys.Button.Y)
+                .whileHeld(new RunCommand(kicker::moveToHome))
+                .whenReleased(new InstantCommand(kicker::moveToTarget));
+
+        new GamepadButton(driver, GamepadKeys.Button.Y)
+                .whileHeld(new RunCommand(() -> intake.setPower(1), intake))
+                .whenReleased(new InstantCommand(() -> intake.setPower(0)));
+
+        new GamepadButton(driver, GamepadKeys.Button.DPAD_LEFT).whenPressed(
+                new InstantCommand(() -> offset = offset + 2)
+        );
+        new GamepadButton(driver, GamepadKeys.Button.DPAD_RIGHT).whenPressed(
+                new InstantCommand(() -> offset = offset - 2)
+        );
+        new GamepadButton(driver, GamepadKeys.Button.DPAD_DOWN).whenPressed(
+                new InstantCommand(() -> offset = 0)
+        );
+
+        new GamepadButton(driver, GamepadKeys.Button.X).whenPressed(
+                new InstantCommand(() -> drive.setPose(new Pose(9, 9, 0)))
+        );
+
+        // =========================
+        // TOOLS CONTROLS
+        // =========================
         new GamepadButton(tools, GamepadKeys.Button.X).toggleWhenPressed(
                 new InstantCommand(() -> intake.setPower(1.0)),
                 new InstantCommand(() -> intake.setPower(0))
         );
-
-        new GamepadButton(tools, GamepadKeys.Button.Y)
-                .whileHeld(new RunCommand(kicker::moveToHome))
-                .whenReleased(new InstantCommand(kicker::moveToTarget));
 
         new GamepadButton(tools, GamepadKeys.Button.LEFT_BUMPER)
                 .whileHeld(new RunCommand(() -> intake.setPower(1), intake))
@@ -116,20 +141,11 @@ public class RedDuoSOTM extends CommandOpMode {
                 new InstantCommand(() -> aimornot = true),
                 new InstantCommand(() -> aimornot = false)
         );
+        new GamepadButton(tools, GamepadKeys.Button.RIGHT_BUMPER)
+                .whileHeld(new RunCommand(brake::moveToHome))
+                .whenReleased(new RunCommand(brake::moveToTarget));
 
-        new GamepadButton(driver, GamepadKeys.Button.DPAD_LEFT).whenPressed(
-                new InstantCommand(() -> offset = offset + 4)
-        );
-        new GamepadButton(driver, GamepadKeys.Button.DPAD_RIGHT).whenPressed(
-                new InstantCommand(() -> offset = offset - 4)
-        );
-        new GamepadButton(driver, GamepadKeys.Button.DPAD_DOWN).whenPressed(
-                new InstantCommand(() -> offset = 0)
-        );
 
-        new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER).whenPressed(
-                new InstantCommand(() -> drive.setPose(new Pose(9, 9, 0)))
-        );
 
         // MAIN LOOP
         schedule(new RunCommand(() -> {
@@ -176,6 +192,7 @@ public class RedDuoSOTM extends CommandOpMode {
             } else {
                 outtake.setVelocityRpm(0);
             }
+
 
             double turretAngle = turret.getTurretAngle();
             double error = Math.abs(aimAngle - turretAngle + offset);
