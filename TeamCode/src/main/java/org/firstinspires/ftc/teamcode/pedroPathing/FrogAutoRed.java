@@ -155,14 +155,14 @@ public class  FrogAutoRed extends OpMode {
                         new BezierCurve(
                                 new Pose(90, 144 - 66),
                                 new Pose(98, 144 - 78),
-                                new Pose(132.5, 144 - 82.8)
+                                new Pose(132.5, 144 - 83.67)
                         )
                 ).setLinearHeadingInterpolation(Math.toRadians(0), Math.toRadians(21.5))
                 .build();
 
         Path5 = follower.pathBuilder().addPath(
                         new BezierCurve(
-                                new Pose(132.5, 144 - 82.8),
+                                new Pose(132.5, 144 - 83.67),
                                 new Pose(92, 144 - 80),
                                 new Pose(90, 144 - 66)
                         )
