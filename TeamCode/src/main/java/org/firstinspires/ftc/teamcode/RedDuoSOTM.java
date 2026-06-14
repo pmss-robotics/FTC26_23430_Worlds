@@ -287,17 +287,17 @@ public class RedDuoSOTM extends CommandOpMode {
 
     public static double computeY(double x) {
         return (0.000117354  * Math.pow(x, 4))
-             - (0.0384068   * Math.pow(x, 3))
-             + (4.48172      * Math.pow(x, 2))
-             - (207.07806     * x)
-             +  5284.83659;
+                - (0.0384068   * Math.pow(x, 3))
+                + (4.48172      * Math.pow(x, 2))
+                - (207.07806     * x)
+                +  5284.83659;
     }
 
     public static double computeHoodPosition(double x) {
         return -(1.3307e-9   * Math.pow(x, 4))
-             +  (5.9712e-7   * Math.pow(x, 3))
-             - (0.0000893847 * Math.pow(x, 2))
-             +  (0.00474244  * x)
-             +   0.250742;
+                +  (5.9712e-7   * Math.pow(x, 3))
+                - (0.0000893847 * Math.pow(x, 2))
+                +  (0.00474244  * x)
+                +   0.250742;
     }
 }

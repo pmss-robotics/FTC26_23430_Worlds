@@ -142,7 +142,7 @@ public class NewRedAuto18 extends OpMode {
                         new BezierCurve(
                                 new Pose(91.000, 76.000),
                                 new Pose(111.000, 49.000),
-                                new Pose(133.000, 60.000)
+                                new Pose(133.000, 60.500)
                         )
                 )
                 .setTangentHeadingInterpolation()
@@ -151,7 +151,7 @@ public class NewRedAuto18 extends OpMode {
         Path5 = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(133.000, 60.000),
+                                new Pose(133.000, 60.500),
                                 new Pose(111.000, 49.000),
                                 new Pose(91.000, 76.000)
                         )
@@ -165,7 +165,7 @@ public class NewRedAuto18 extends OpMode {
                         new BezierCurve(
                                 new Pose(91.000, 76.000),
                                 new Pose(111.000, 49.000),
-                                new Pose(133.000, 60.000)
+                                new Pose(133.000, 60.500)
                         )
                 )
                 .setTangentHeadingInterpolation()
@@ -174,7 +174,7 @@ public class NewRedAuto18 extends OpMode {
         Path7 = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(133.000, 60.000),
+                                new Pose(133.000, 60.500),
                                 new Pose(111.000, 49.000),
                                 new Pose(91.000, 76.000)
                         )
@@ -209,7 +209,7 @@ public class NewRedAuto18 extends OpMode {
                         new BezierCurve(
                                 new Pose(91.000, 76.000),
                                 new Pose(111.000, 49.000),
-                                new Pose(133.000, 60.000)
+                                new Pose(133.000, 60.500)
                         )
                 )
                 .setTangentHeadingInterpolation()
@@ -218,7 +218,7 @@ public class NewRedAuto18 extends OpMode {
         Path11 = follower.pathBuilder()
                 .addPath(
                         new BezierCurve(
-                                new Pose(133.000, 60.000),
+                                new Pose(133.000, 60.500),
                                 new Pose(111.000, 49.000),
                                 new Pose(91.000, 76.000)
                         )
@@ -444,18 +444,18 @@ public class NewRedAuto18 extends OpMode {
     }
 
     public static double computeY(double x) {
-        return ((0.000057964) * Math.pow(x, 4)
-                - ((0.0197251)  * Math.pow(x, 3))
-                + (2.38515 * Math.pow(x, 2))
-                - 107.9964 * x
-                + 3625.22859);
+        return (0.000117354  * Math.pow(x, 4))
+                - (0.0384068   * Math.pow(x, 3))
+                + (4.48172      * Math.pow(x, 2))
+                - (207.07806     * x)
+                +  5324.83659;
     }
 
     public static double computeHoodPosition(double x) {
-        return (-((1.3307e-9)  * Math.pow(x, 4))
-                + ((5.9712e-7) * Math.pow(x, 3))
+        return -(1.3307e-9   * Math.pow(x, 4))
+                +  (5.9712e-7   * Math.pow(x, 3))
                 - (0.0000893847 * Math.pow(x, 2))
-                + 0.00474244 * x
-                + 0.250742);
+                +  (0.00474244  * x)
+                +   0.250742;
     }
 }
