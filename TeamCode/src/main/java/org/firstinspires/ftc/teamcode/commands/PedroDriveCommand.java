@@ -33,20 +33,27 @@ public class PedroDriveCommand extends CommandBase {
         drive.follower.startTeleopDrive();
         headingPIDF = new PIDFController(Constants.followerConstants.getCoefficientsHeadingPIDF());
     }
+
     @Override
     public void execute() {
+        // When navigating, do nothing — let Pedro's path follower drive the robot.
+        // When control returns (enabled flipped back to true), re-enter teleop mode first.
+        if (!enabled) return;
+
         headingPIDF.setCoefficients(Constants.followerConstants.getCoefficientsHeadingPIDF()); //FIXME: remove me when done tuning
         Pose currentPose = drive.follower.getPose();
-        if(rx.getAsDouble()!= 0) {
+        if (rx.getAsDouble() != 0) {
             target = drive.follower.getPose().getHeading();
             drive.follower.setTeleOpDrive(ly.getAsDouble(), lx.getAsDouble(), rx.getAsDouble(), !isFieldCentric);
         } else {
-            // possibly deadband?
-            double headingError = MathFunctions.getTurnDirection(currentPose.getHeading(), target) * MathFunctions.getSmallestAngleDifference(currentPose.getHeading(), target);
+            double headingError = MathFunctions.getTurnDirection(currentPose.getHeading(), target)
+                    * MathFunctions.getSmallestAngleDifference(currentPose.getHeading(), target);
             headingPIDF.updateError(headingError);
-            double heading = MathFunctions.clamp(headingPIDF.run() + Constants.followerConstants.getCoefficientsHeadingPIDF().F * MathFunctions.getTurnDirection(currentPose.getHeading(), target), -1, 1);
+            double heading = MathFunctions.clamp(
+                    headingPIDF.run() + Constants.followerConstants.getCoefficientsHeadingPIDF().F
+                            * MathFunctions.getTurnDirection(currentPose.getHeading(), target),
+                    -1, 1);
             drive.follower.setTeleOpDrive(ly.getAsDouble(), lx.getAsDouble(), /*heading*/ 0, !isFieldCentric);
         }
-
     }
 }

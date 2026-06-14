@@ -16,15 +16,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(14)
-            .forwardZeroPowerAcceleration(-48.02350769059122)
-            .lateralZeroPowerAcceleration(-74.73530674893154
-
-            )
+            .mass(11.3)
+            .forwardZeroPowerAcceleration(-47.55376313575766)
+            .lateralZeroPowerAcceleration(-59.68397078215354)
             .centripetalScaling(0.0003)
-            .translationalPIDFCoefficients(new PIDFCoefficients(0.2, 0, 0.019, 0.035))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.0353, 0, 0.01, 0.6, 0.01))
-            .headingPIDFCoefficients(new PIDFCoefficients(1.3, 0, 0.09, 0.02));
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.15, 0, 0.0189, 0.04))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.037, 0, 0.01, 0.6, 0.01))
+            .headingPIDFCoefficients(new PIDFCoefficients(3, 0, 0.16, 0.025));
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
@@ -39,8 +37,8 @@ public class Constants {
             .useBrakeModeInTeleOp(true)
 
 
-            .xVelocity(75.0557001068836)
-            .yVelocity(57.713207334984);
+            .xVelocity(79.11997060700665)
+            .yVelocity(60.343006524514024);
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
     //public static PathConstraints pathConstraints =

@@ -54,7 +54,7 @@ public class TestOp extends CommandOpMode {
 
         // ⭐ Create Pedro follower so pose updates as robot moves
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(new Pose(72, 72, 0));
+        follower.setStartingPose(new Pose(135, 9, 0));
 
         // ============================
         // CONTROLS

@@ -12,7 +12,7 @@ public class HoodSubsystem implements Subsystem {
     ServoImplEx servoHood;
 
     private double HOME_POSITION = 0.4;
-    private double TARGET_POSITION = 0.32;
+    private double TARGET_POSITION = 0.3;
 
     public HoodSubsystem(HardwareMap hardwareMap, Telemetry telemetry){
         this.telemetry = telemetry;

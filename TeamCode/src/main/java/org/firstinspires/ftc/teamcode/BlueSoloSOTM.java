@@ -3,10 +3,12 @@ package org.firstinspires.ftc.teamcode;
 import com.acmerobotics.dashboard.FtcDashboard;
 import com.acmerobotics.dashboard.config.Config;
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 
+import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
+import com.pedropathing.paths.PathChain;
+
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.RunCommand;
@@ -14,7 +16,6 @@ import com.seattlesolvers.solverslib.command.button.GamepadButton;
 import com.seattlesolvers.solverslib.gamepad.GamepadEx;
 import com.seattlesolvers.solverslib.gamepad.GamepadKeys;
 
-import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.teamcode.commands.PedroDriveCommand;
@@ -29,42 +30,58 @@ import java.util.Objects;
 public class BlueSoloSOTM extends CommandOpMode {
 
     public static double driveSpeed = 1;
-    public static double fast = 1;
-    public static double slow = 1;
+    public static double fast       = 1;
+    public static double slow       = 0.5;
 
-    public static double offset = 0;
+    public static double offset  = 0;
     public static double targetX = 144;
     public static double targetY = 0;
 
-    private static boolean aimornot = false;
+    public static double navX       = 130.22;
+    public static double navY       = 144 - 58.5;
+    public static double navHeading = -34;
 
-    GamepadEx driver, tools;
+    private static final double OVERRIDE_THRESHOLD = 0.08;
+
+    private boolean aimornot     = false;
+    private boolean isNavigating = false;
+
+    // Relocalization flash state
+    private boolean isFlashing     = false;
+    private long    flashStartTime = 0;
+    private static final int  FLASH_TOTAL     = 4;
+    private static final long FLASH_PERIOD_MS = 120;
+
+    // Indicator servo positions
+    private static final double IND_DEFAULT = 0.277;
+    private static final double IND_YELLOW  = 0.388;
+    private static final double IND_BLUE    = 0.611;
+    private static final double IND_GREEN   = 0.5;
+
+    GamepadEx driver;
     PedroDriveSubsystem drive;
-
-    private Limelight3A limelight;
-
     private Servo indicator;
 
     @Override
     public void initialize() {
 
+        // MultipleTelemetry first so all subsystems get Dashboard telemetry
+        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+
         if (Objects.isNull(StateTransfer.posePedro)) {
-            StateTransfer.posePedro = new Pose(43.956, 58.013, Math.toRadians(-142.35));
+            StateTransfer.posePedro = new Pose(0, 0, Math.toRadians(0));
         }
 
-        FlywheelSubsystem outtake = new FlywheelSubsystem(hardwareMap, telemetry);
-        IntakeSubsystemNew intake = new IntakeSubsystemNew(hardwareMap, telemetry);
-        KickerSubsystem kicker = new KickerSubsystem(hardwareMap);
-        HoodSubsystem hood = new HoodSubsystem(hardwareMap, telemetry);
-        BrakeSubsystem brake = new BrakeSubsystem(hardwareMap);
-        MovingWhileShooting turret = new MovingWhileShooting(hardwareMap);
+        FlywheelSubsystem   outtake = new FlywheelSubsystem(hardwareMap, telemetry);
+        IntakeSubsystemNew  intake  = new IntakeSubsystemNew(hardwareMap, telemetry);
+        KickerSubsystem     kicker  = new KickerSubsystem(hardwareMap);
+        HoodSubsystem       hood    = new HoodSubsystem(hardwareMap, telemetry);
+        BrakeSubsystem      brake   = new BrakeSubsystem(hardwareMap);
+        MovingWhileShooting turret  = new MovingWhileShooting(hardwareMap);
 
         turret.setInitialAngle(StateTransfer.turretInitial);
 
-        telemetry = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-
         driver = new GamepadEx(gamepad1);
-        tools = new GamepadEx(gamepad2);
 
         drive = new PedroDriveSubsystem(
                 Constants.createFollower(hardwareMap),
@@ -73,20 +90,16 @@ public class BlueSoloSOTM extends CommandOpMode {
         );
 
         hood.moveToTarget();
-        brake.moveToTarget();
-        limelight = hardwareMap.get(Limelight3A.class, "limelight");
-        limelight.setPollRateHz(100);
-        limelight.start();
 
         indicator = hardwareMap.get(Servo.class, "indicator");
-        indicator.setPosition(1.0);
+        indicator.setPosition(IND_DEFAULT);
 
         driveSpeed = fast;
 
         PedroDriveCommand driveCommand = new PedroDriveCommand(
                 drive,
                 () -> -driver.getLeftX() * driveSpeed,
-                () -> driver.getLeftY() * driveSpeed,
+                () ->  driver.getLeftY() * driveSpeed,
                 () -> -driver.getRightX() * driveSpeed,
                 true
         );
@@ -95,136 +108,172 @@ public class BlueSoloSOTM extends CommandOpMode {
         // DRIVER CONTROLS
         // =========================
 
-        new GamepadButton(driver, GamepadKeys.Button.B).toggleWhenPressed(
-                new InstantCommand(() -> turret.holdAtZero(true)),
-                new InstantCommand(() -> turret.holdAtZero(false))
+        // X: navigate to (navX, navY, navHeading)
+        new GamepadButton(driver, GamepadKeys.Button.X).whenPressed(
+                new InstantCommand(() -> {
+                    Pose current = drive.getPose();
+                    Pose target  = new Pose(navX, navY, Math.toRadians(navHeading));
+
+                    PathChain navPath = drive.follower.pathBuilder()
+                            .addPath(new BezierLine(current, target))
+                            .setLinearHeadingInterpolation(current.getHeading(), target.getHeading())
+                            .build();
+
+                    PedroDriveCommand.enabled = false;
+                    drive.follower.followPath(navPath, true);
+                    isNavigating = true;
+                })
         );
 
-        new GamepadButton(driver, GamepadKeys.Button.X).toggleWhenPressed(
-                new InstantCommand(() -> intake.setPower(1.0)),
-                new InstantCommand(() -> intake.setPower(0))
-        );
-
+        // Y: intake / kicker
         new GamepadButton(driver, GamepadKeys.Button.Y)
-                .whileHeld(new RunCommand(kicker::moveToHome))
-                .whenReleased(new InstantCommand(kicker::moveToTarget));
+                .whenPressed(new InstantCommand(() -> {
+                    kicker.moveToHome();
+                    intake.setPower(1);
+                }))
+                .whenReleased(new InstantCommand(() -> {
+                    kicker.moveToTarget();
+                    aimornot = false;
+                    intake.setPower(0);
+                }));
 
+        // Left Bumper: intake while held, enable flywheel on release
         new GamepadButton(driver, GamepadKeys.Button.LEFT_BUMPER)
-                .whileHeld(new RunCommand(() -> intake.setPower(1), intake))
-                .whenReleased(new InstantCommand(() -> intake.setPower(0)));
+                .whileHeld(new RunCommand(() -> {
+                    intake.setPower(1);
+                    aimornot = false;
+                }, intake))
+                .whenReleased(new InstantCommand(() -> {
+                    intake.setPower(0);
+                    aimornot = true;
+                }));
 
+        // D-Pad Left/Right: turret offset trim
+        new GamepadButton(driver, GamepadKeys.Button.DPAD_LEFT).whenPressed(
+                new InstantCommand(() -> offset += 1)
+        );
+        new GamepadButton(driver, GamepadKeys.Button.DPAD_RIGHT).whenPressed(
+                new InstantCommand(() -> offset -= 1)
+        );
+
+        // D-Pad Down: pose reset + green flash confirmation
+        new GamepadButton(driver, GamepadKeys.Button.DPAD_DOWN).whenPressed(
+                new InstantCommand(() -> {
+                    drive.setPose(new Pose(135, 141.5 - 9, 0));
+                    isFlashing     = true;
+                    flashStartTime = System.currentTimeMillis();
+                })
+        );
+
+        // Right Bumper: brake
         new GamepadButton(driver, GamepadKeys.Button.RIGHT_BUMPER)
                 .whileHeld(new RunCommand(brake::moveToHome))
                 .whenReleased(new RunCommand(brake::moveToTarget));
 
-
-
-        new GamepadButton(driver, GamepadKeys.Button.DPAD_UP).toggleWhenPressed(
-                new InstantCommand(() -> aimornot = true),
-                new InstantCommand(() -> aimornot = false)
-        );
-
-        new GamepadButton(driver, GamepadKeys.Button.DPAD_LEFT).whenPressed(
-                new InstantCommand(() -> offset = offset + 4)
-        );
-        new GamepadButton(driver, GamepadKeys.Button.DPAD_RIGHT).whenPressed(
-                new InstantCommand(() -> offset = offset - 4)
-        );
-        new GamepadButton(driver, GamepadKeys.Button.DPAD_DOWN).whenPressed(
-                new InstantCommand(() -> drive.setPose(new Pose(9, 135, 0)))
-        );
-
-
-
-
+        // =========================
         // MAIN LOOP
+        // =========================
         schedule(new RunCommand(() -> {
 
-            Pose pose = drive.getPose();
-            double robotX = pose.getX();
-            double robotY = pose.getY();
+            // Navigation / manual-override
+            if (isNavigating) {
+                boolean driverTouching =
+                        Math.abs(driver.getLeftX())  > OVERRIDE_THRESHOLD ||
+                                Math.abs(driver.getLeftY())  > OVERRIDE_THRESHOLD ||
+                                Math.abs(driver.getRightX()) > OVERRIDE_THRESHOLD;
+
+                if (driverTouching || !drive.follower.isBusy()) {
+                    drive.follower.breakFollowing();
+                    drive.follower.startTeleopDrive();
+                    PedroDriveCommand.enabled = true;
+                    isNavigating = false;
+                }
+            }
+
+            // Pose & velocity
+            Pose   pose            = drive.getPose();
+            double robotX          = pose.getX();
+            double robotY          = pose.getY();
             double robotHeadingDeg = Math.toDegrees(pose.getHeading());
 
-            // You may need to adjust this depending on PedroDriveSubsystem API
-            Vector vel = drive.getVelocity(); // field-centric velocity
+            Vector vel     = drive.getVelocity();
             double robotVx = vel.getXComponent();
             double robotVy = vel.getYComponent();
 
-            // Lead-compensated aim
+            // Turret — always tracking
             double aimAngle = turret.calculateAimAngleWithLead(
                     robotX, robotY, robotHeadingDeg,
                     targetX, targetY,
                     robotVx, robotVy
-
             );
-
             turret.goToAngle(aimAngle + offset);
 
-            // Effective distance after lead
-            double distance = turret.getDistance();
+            // Straight-line distance for hood and flywheel RPM
+            double distance = Math.sqrt(Math.pow(targetX - robotX, 2) + Math.pow(targetY - robotY, 2));
 
-            // Hood position from distance
+            // Hood
             double hoodPos = computeHoodPosition(distance);
-            hoodPos = Math.max(0.0, Math.min(1.0, hoodPos));
-            if (hoodPos < 0.3) {
-                hoodPos = 0.3;
-            }
+            hoodPos = Math.max(0.295, Math.min(0.33, hoodPos));
             hood.setHoodPosition(hoodPos);
 
-            // Flywheel RPM from distance
+            // Flywheel
             if (aimornot) {
-                if (computeY(distance) < 1965) {
-                    outtake.setVelocityRpm(1965);
-                }
-                else {
-                    outtake.setVelocityRpm(computeY(distance));
-                }
+                outtake.setVelocityRpm(Math.max(1965, computeY(distance)));
             } else {
                 outtake.setVelocityRpm(0);
             }
 
-
+            // Aim indicator
             double turretAngle = turret.getTurretAngle();
-            double error = Math.abs(aimAngle - turretAngle + offset);
+            double error       = Math.abs((aimAngle + offset) - turretAngle);
 
-            if (error < 2) {
-                indicator.setPosition(0.611);
+            if (isFlashing) {
+                long elapsed   = System.currentTimeMillis() - flashStartTime;
+                int  halfCycle = (int)(elapsed / FLASH_PERIOD_MS);
+                if (halfCycle >= FLASH_TOTAL) {
+                    isFlashing = false;
+                } else {
+                    indicator.setPosition((halfCycle % 2 == 0) ? IND_GREEN : IND_DEFAULT);
+                }
+            } else if (error < 1.0) {
+                indicator.setPosition(IND_BLUE);
+            } else if (aimornot && error < 10.0) {
+                indicator.setPosition(IND_YELLOW);
             } else {
-                indicator.setPosition(0.277);
+                indicator.setPosition(IND_DEFAULT);
             }
 
-            telemetry.addData("Turret Angle", turretAngle);
-            telemetry.addData("Aim Angle", aimAngle);
-            telemetry.addData("Error", error);
-            telemetry.addData("Flywheel RPM", outtake.getTargetRPM());
-            telemetry.addData("Actual Outtake RPM", outtake.getActualRpm());
-            telemetry.addData("Actual Outtake 2 RPM", outtake.getActualRpm2());
-            telemetry.addData("Distance to goal (effective)", distance);
-            telemetry.addData("Robot Vx", robotVx);
-            telemetry.addData("Robot Vy", robotVy);
+            // Telemetry
+            telemetry.addData("Navigating",         isNavigating);
+            telemetry.addData("Flywheel On",         aimornot);
+            telemetry.addData("Turret Angle",        turretAngle);
+            telemetry.addData("Aim Angle",           aimAngle);
+            telemetry.addData("Error",               error);
+            telemetry.addData("Target RPM",          outtake.getTargetRPM());
+            telemetry.addData("Actual RPM 1",        outtake.getActualRpm());
+            telemetry.addData("Actual RPM 2",        outtake.getActualRpm2());
+            telemetry.addData("Distance",            distance);
+            telemetry.addData("Robot Vx",            robotVx);
+            telemetry.addData("Robot Vy",            robotVy);
             telemetry.update();
-
-            TelemetryPacket packet = new TelemetryPacket();
-            packet.fieldOverlay().setStroke("#3F51B5");
-            FtcDashboard.getInstance().sendTelemetryPacket(packet);
         }));
 
         schedule(driveCommand);
     }
 
     public static double computeY(double x) {
-        return (0.0000175768 * Math.pow(x, 4))
-                - (0.00579237 * Math.pow(x, 3))
-                + (0.703251 * Math.pow(x, 2))
-                - (21.63918 * x)
-                + 1997.14785;
+        return (0.000057964  * Math.pow(x, 4))
+                - (0.0197251    * Math.pow(x, 3))
+                + (2.38515      * Math.pow(x, 2))
+                - (107.9964     * x)
+                +  3705.22859;
     }
 
     public static double computeHoodPosition(double x) {
-        return (-(1.67969e-9) * Math.pow(x, 4))
-                + ((5.93206e-7) * Math.pow(x, 3))
-                - (0.0000619875 * Math.pow(x, 2))
-                + 0.00105249 * x
-                + 0.38746;
+        return -(1.3307e-9   * Math.pow(x, 4))
+                +  (5.9712e-7   * Math.pow(x, 3))
+                - (0.0000893847 * Math.pow(x, 2))
+                +  (0.00474244  * x)
+                +   0.250742;
     }
 }
