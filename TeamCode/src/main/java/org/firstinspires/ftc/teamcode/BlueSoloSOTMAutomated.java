@@ -8,6 +8,7 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.VoltageSensor;
 import com.seattlesolvers.solverslib.command.CommandOpMode;
 import com.seattlesolvers.solverslib.command.InstantCommand;
 import com.seattlesolvers.solverslib.command.RunCommand;
@@ -48,8 +49,20 @@ public class BlueSoloSOTMAutomated extends CommandOpMode {
     private static final double OVERRIDE_THRESHOLD = 0.08;
 
     private boolean aimornot     = false;
-    private boolean autoShoot = false;
-    private boolean isNavigating = false;
+    private boolean autoShoot    = false;
+    private boolean isNavigating  = false;
+
+// BURST FIRE MACRO
+public static int BURST_COUNT = 3;
+    private int burstShotsRemaining = 0;
+    private long kickerTimer = 0;
+
+    private enum KickerState { IDLE, FIRING, RETRACTING }
+    private KickerState kickerState = KickerState.IDLE;
+
+    // Timing constants in milliseconds
+    public static long FIRE_TIME_MS = 150;
+    public static long RETRACT_TIME_MS = 250;
 
     // Relocalization flash state
     private boolean isFlashing     = false;
@@ -66,6 +79,7 @@ public class BlueSoloSOTMAutomated extends CommandOpMode {
     GamepadEx driver;
     PedroDriveSubsystem drive;
     private Servo indicator;
+    private VoltageSensor batteryVoltageSensor;
 
     @Override
     public void initialize() {
@@ -85,6 +99,7 @@ public class BlueSoloSOTMAutomated extends CommandOpMode {
         MovingWhileShooting turret  = new MovingWhileShooting(hardwareMap);
 
         turret.setInitialAngle(StateTransfer.turretInitial);
+        batteryVoltageSensor = hardwareMap.voltageSensor.iterator().next();
 
         driver = new GamepadEx(gamepad1);
 
@@ -137,6 +152,7 @@ public class BlueSoloSOTMAutomated extends CommandOpMode {
                     intake.setPower(1);
                     aimornot = false;
                     autoShoot = false;
+                    burstShotsRemaining = 0;
                 }))
                 .whenReleased(new InstantCommand(() -> {
                     intake.setPower(0);
@@ -147,12 +163,13 @@ public class BlueSoloSOTMAutomated extends CommandOpMode {
                 .whileHeld(new RunCommand(() -> {
                     intake.setPower(1);
                     aimornot = false;
-                    autoShoot = false;
+                    burstShotsRemaining = 0;
+                    kickerState = KickerState.IDLE;
                 }, intake))
                 .whenReleased(new InstantCommand(() -> {
                     intake.setPower(0);
                     aimornot = true;
-                    autoShoot = true;
+                    burstShotsRemaining = BURST_COUNT; // Queues 3 shots
                 }));
 
         // D-Pad Left/Right: turret offset trim
@@ -181,8 +198,7 @@ public class BlueSoloSOTMAutomated extends CommandOpMode {
         // MAIN LOOP
         // =========================
         schedule(new RunCommand(() -> {
-
-
+            driver.readButtons();
 
             // Define driver override status
             boolean driverTouching =
@@ -245,10 +261,19 @@ public class BlueSoloSOTMAutomated extends CommandOpMode {
 
             // Flywheel
             if (aimornot) {
+                // Read current Control Hub battery voltage
+                double batteryVoltage = batteryVoltageSensor.getVoltage();
                 double targetRPM = Math.max(1965, computeY(distance));
 
-                smoothedRPM += (targetRPM - smoothedRPM) * 0.15;
+                // only compensate voltage when under 12.8
+                double voltageCompensation = 1.0;
 
+                if (batteryVoltage < 12.7) {
+                    voltageCompensation = 12.7 / Math.max(batteryVoltage, 10.0);
+                }
+                targetRPM *= voltageCompensation;
+
+                smoothedRPM += (targetRPM - smoothedRPM) * 0.10;
                 outtake.setVelocityRpm(smoothedRPM);
             } else {
                 outtake.setVelocityRpm(0);
@@ -265,9 +290,37 @@ public class BlueSoloSOTMAutomated extends CommandOpMode {
             boolean shootReady = turretReady && flywheelReady;
 
 // Automatic shooting
-            if (autoShoot && shootReady) {
+            /*if (autoShoot && shootReady) {
                 kicker.moveToTarget();
                 autoShoot = false;
+            }*/
+
+            // Burst Fire State Machine
+            if (burstShotsRemaining > 0) {
+                switch (kickerState) {
+                    case IDLE:
+                        if (shootReady) {
+                            kicker.moveToTarget();
+                            kickerTimer = System.currentTimeMillis();
+                            kickerState = KickerState.FIRING;
+                        }
+                        break;
+                    case FIRING:
+                        if (System.currentTimeMillis() - kickerTimer > FIRE_TIME_MS) {
+                            kicker.moveToHome();
+                            kickerTimer = System.currentTimeMillis();
+                            kickerState = KickerState.RETRACTING;
+                            burstShotsRemaining--;
+                        }
+                        break;
+                    case RETRACTING:
+                        if (System.currentTimeMillis() - kickerTimer > RETRACT_TIME_MS) {
+                            kickerState = KickerState.IDLE;
+                        }
+                        break;
+                }
+            } else {
+                kickerState = KickerState.IDLE;
             }
 
 
@@ -290,6 +343,7 @@ public class BlueSoloSOTMAutomated extends CommandOpMode {
             // Telemetry
             telemetry.addData("Navigating",         isNavigating);
             telemetry.addData("Flywheel On",         aimornot);
+            telemetry.addData("Burst Shots Left",   burstShotsRemaining);
             telemetry.addData("Turret Angle",        turretAngle);
             telemetry.addData("Aim Angle",           aimAngle);
             telemetry.addData("Error",               error);
