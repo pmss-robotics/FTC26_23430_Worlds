@@ -19,8 +19,15 @@ public class MecanumDriveSubsystem extends SubsystemBase {
         rightFront = hw.get(DcMotorEx.class, "rightFront");
         rightBack = hw.get(DcMotorEx.class, "rightBack");
 
-        pinpoint = hw.get(GoBildaPinpointDriver.class, "pinpoint");
-        pinpoint.resetPosAndIMU(); // robot must be still; current facing becomes heading 0
+        // Pinpoint is optional: without it, field-centric falls back to robot-centric
+        GoBildaPinpointDriver pp = null;
+        try {
+            pp = hw.get(GoBildaPinpointDriver.class, "pinpoint");
+            pp.resetPosAndIMU(); // robot must be still; current facing becomes heading 0
+        } catch (Exception e) {
+            pp = null;
+        }
+        pinpoint = pp;
 
         // Flip these if a side drives backwards
         leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -66,16 +73,16 @@ public class MecanumDriveSubsystem extends SubsystemBase {
 
     /** Heading in radians, CCW positive. */
     public double getHeading() {
-        return pinpoint.getHeading(AngleUnit.RADIANS);
+        return pinpoint == null ? 0 : pinpoint.getHeading(AngleUnit.RADIANS);
     }
 
     /** Makes the way the robot currently faces the new field forward. */
     public void resetHeading() {
-        pinpoint.resetPosAndIMU();
+        if (pinpoint != null) pinpoint.resetPosAndIMU();
     }
 
     @Override
     public void periodic() {
-        pinpoint.update();
+        if (pinpoint != null) pinpoint.update();
     }
 }
